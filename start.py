@@ -19,7 +19,7 @@ async def on_ready():
 #calculate command "1+1" "8%2"
 @feather_bot.command()
 async def hello():
-    return await feather_bot.say("Hello I am " + feather_bot.user.name)
+    return await feather_bot.say("Hello I am " + feather_bot.user.name + ".")
 
 @feather_bot.command(pass_context = True)
 async def me(ctx):
