@@ -32,7 +32,7 @@ async def joined(member : discord.Member):
 
 @feather_bot.command()
 async def add(*nums : float):
-    sumNum = 0;
+    sumNum = 0
     for i in nums:
         sumNum += i
     return await feather_bot.say("The sum of all these numbers is {0}".format(sumNum))

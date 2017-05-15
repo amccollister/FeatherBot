@@ -1,6 +1,7 @@
 FeatherBot Features
 ----------------------
-QUOTES!!!
+Quotes
+Reminder
 8Ball
 Currency/Lottery
 Cleverbot?
