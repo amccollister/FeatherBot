@@ -1,15 +1,16 @@
 import constants
-import discord.ext.commands
+import discord
 import asyncio  # learn this thing
 import random
 
 from discord.ext.commands import Bot
+# import configparser at some point
 
 # figure out how implementing this will help
 class ChatManager(Bot):
     pass
 
-feather_bot = ChatManager()  # command_prefix="!")
+feather_bot = ChatManager(command_prefix="!")  # command_prefix="!")
 
 quotes = open("quotes.txt", "w")
 
@@ -20,6 +21,11 @@ async def on_ready():
     print(feather_bot.user.name)
     print(feather_bot.user.id)
     print("------------")
+
+@feather_bot.event
+async def on_message(message : discord.Message):
+    if message.author.id != feather_bot.user.id:
+        await feather_bot.send_message(message.channel, "I saw a message")  # feather_bot.say("I saw a message!")
 
 # calculate command "1+1" "8%2"
 @feather_bot.command()
@@ -44,13 +50,5 @@ async def add(*nums : float):
 @feather_bot.command()
 async def choose(*choice : str):
     await feather_bot.say("The best is " + random.choice(choice))
-
-@feather_bot.command()
-async def add_quote(line : str, name : str):
-    pass
-
-@feather_bot.command()
-async def quote():
-    pass
 
 feather_bot.run(constants.BOT_TOKEN)
