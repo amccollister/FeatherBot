@@ -1,5 +1,5 @@
 import constants
-import discord.ext.commands
+import discord
 import asyncio  # learn this thing
 import random
 
@@ -9,7 +9,7 @@ from discord.ext.commands import Bot
 class ChatManager(Bot):
     pass
 
-feather_bot = ChatManager()  # command_prefix="!")
+feather_bot = ChatManager(command_prefix="!")  # command_prefix="!")
 
 quotes = open("quotes.txt", "w")
 
@@ -20,6 +20,9 @@ async def on_ready():
     print(feather_bot.user.name)
     print(feather_bot.user.id)
     print("------------")
+
+@feather_bot.event
+async def on_message(message : discord.Message):
 
 # calculate command "1+1" "8%2"
 @feather_bot.command()
