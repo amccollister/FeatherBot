@@ -4,6 +4,7 @@ import asyncio  # learn this thing
 import random
 
 from discord.ext.commands import Bot
+# import configparser at some point
 
 # figure out how implementing this will help
 class ChatManager(Bot):
@@ -49,13 +50,5 @@ async def add(*nums : float):
 @feather_bot.command()
 async def choose(*choice : str):
     await feather_bot.say("The best is " + random.choice(choice))
-
-@feather_bot.command()
-async def add_quote(line : str, name : str):
-    pass
-
-@feather_bot.command()
-async def quote():
-    pass
 
 feather_bot.run(constants.BOT_TOKEN)
