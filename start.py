@@ -23,6 +23,8 @@ async def on_ready():
 
 @feather_bot.event
 async def on_message(message : discord.Message):
+    if message.author.id != feather_bot.user.id:
+        await feather_bot.send_message(message.channel, "I saw a message")  # feather_bot.say("I saw a message!")
 
 # calculate command "1+1" "8%2"
 @feather_bot.command()
