@@ -2,7 +2,6 @@ import constants
 import discord
 from chatmanager import bot
 import asyncio  # learn this thing
-import random
 # import configparser at some point
 
 server = None # declare a global variable tracking my main server
@@ -22,8 +21,5 @@ async def on_ready():
 async def on_message(message : discord.Message):
     if message.author.id != feather_bot.user.id:
         await feather_bot.incoming_message(message)
-        # await feather_bot.send_message(message.channel, "I saw a message")  # feather_bot.say("I saw a message!")
-
-# calculate command "1+1" "8%2"
 
 feather_bot.run(constants.BOT_TOKEN)
