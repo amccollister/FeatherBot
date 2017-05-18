@@ -5,7 +5,7 @@ import asyncio  # learn this thing
 # import configparser at some point
 
 server = None # declare a global variable tracking my main server
-feather_bot = bot.ChatManager(command_prefix="!")
+feather_bot = bot.ChatManager("!", "312852004999266304") # hard coded the dev channel for now
 
 @feather_bot.event
 async def on_ready():

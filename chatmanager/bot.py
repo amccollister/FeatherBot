@@ -3,18 +3,40 @@ import random
 from discord.ext.commands import Bot
 
 class ChatManager(Bot):
+    command_list = []
+
+    @staticmethod
+    def get_command_list():
+        cmd_list = [func for func in dir(ChatManager) if str(func).startswith("cmd_")]
+        return cmd_list
+
+    def __init__(self, command_prefix, whitelist):
+        super().__init__(command_prefix)
+        self.whitelist = whitelist
+        self.command_list = self.get_command_list()
 
     async def incoming_message(self, message : discord.Message):
-        if message.content.startswith(self.command_prefix):
+        if message.content.startswith(self.command_prefix) and message.channel.id == self.whitelist:
             args = message.content.split(" ")
             arg = args.pop(0)[1:]
             await getattr(self, "cmd_" + arg)(message, args)
+
+    async def cmd_help(self, message, *_): #Eventually have help specific to modules
+        cmds = "**Here's the current list of commands:**```"
+        for cmd in self.command_list:
+            cmds += (self.command_prefix + cmd[4:] + ", ")
+        cmds = cmds.rstrip(", ")
+        cmds += "```"
+        await self.send_message(message.channel, cmds)
+
+    async def cmd_coolest(self, message, *_):
+        await self.send_message(message.channel, "{0} is the coolest!".format(message.author.name))
 
     async def cmd_test(self, message, *_):
         await self.send_message(message.channel, "If you see this, Andrew did something right.")
 
     async def cmd_choose(self, message, *choice):
-        await self.say("The best is " + random.choice(choice))
+        await self.send_message(message.channel, "The best is " + random.choice(choice[0]))
 
     async def cmd_hello(self, message, *_):
         await self.send_message(message.channel, "Hello I am {0}!".format(self.user.name))
@@ -28,8 +50,11 @@ class ChatManager(Bot):
     async def cmd_args(self, message, *args):
         await self.send_message(message.channel, args)
 
-    async def cmd_calc(self, message, *nums : float): # fix this # calculate command "1+1" "8%2"
-        pass
+    async def cmd_calc(self, message, *args): # calculate command "1+1" "8%2"
+        operators = ["+", "-", "*", "x", "/", "%"]
+        op = args[0][0]
+        if op not in operators:
+            await self.send_message(message.channel, "This is not an operator. (!calc + 1 1)")
         """sumNum = 0
         for i in nums:
             sumNum += i
