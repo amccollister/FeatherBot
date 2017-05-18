@@ -1,7 +1,6 @@
 # FeatherBot
-A chat bot for Discord developed by amateurs
+A chat bot for Discord developed as a learning project.
 
 TODO:
-Force bot to only use specific chat channels.
 Adjust bot to import commands from multiple files.
 Learn MySQL.

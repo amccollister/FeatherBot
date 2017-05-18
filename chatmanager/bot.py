@@ -4,7 +4,8 @@ from discord.ext.commands import Bot
 
 class ChatManager(Bot):
     command_list = []
-
+    # TODO ping addquote quote currency? 8Ball Reminder Cleverbot Online motd?/rules? rngImage 1d20 RPS! facts emoteText
+    # TODO wiki strawpoll youtube weather joke???
     @staticmethod
     def get_command_list():
         cmd_list = [func for func in dir(ChatManager) if str(func).startswith("cmd_")]
