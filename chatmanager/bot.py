@@ -17,9 +17,13 @@ class ChatManager(Bot):
 
     async def incoming_message(self, message : discord.Message):
         if message.content.startswith(self.command_prefix) and message.channel.id == self.whitelist:
-            args = message.content.split(" ")
-            arg = args.pop(0)[1:]
-            await getattr(self, "cmd_" + arg)(message, args)
+                args = message.content.split(" ")
+                arg = args.pop(0)[1:]
+                if "cmd_" + arg in self.command_list:
+                    await getattr(self, "cmd_" + arg)(message, args)
+                else:
+                    await self.send_message(message.channel, "```That's not a command!"
+                                                             "\nPlease use !help for a list of commands.```")
 
     async def cmd_help(self, message, *_): #Eventually have help specific to modules
         cmds = "**Here's the current list of commands:**```"
@@ -46,16 +50,3 @@ class ChatManager(Bot):
 
     async def cmd_joined(self, message, *_):
         await self.send_message(message.channel, "{0.name} joined on {0.joined_at}".format(message.author))
-
-    async def cmd_args(self, message, *args):
-        await self.send_message(message.channel, args)
-
-    async def cmd_calc(self, message, *args): # calculate command "1+1" "8%2"
-        operators = ["+", "-", "*", "x", "/", "%"]
-        op = args[0][0]
-        if op not in operators:
-            await self.send_message(message.channel, "This is not an operator. (!calc + 1 1)")
-        """sumNum = 0
-        for i in nums:
-            sumNum += i
-        await self.say("The sum of all these numbers is {0}".format(sumNum))"""
