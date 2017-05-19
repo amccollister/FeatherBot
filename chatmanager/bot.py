@@ -10,8 +10,8 @@ class ChatManager(Bot):
     plugin_list = {}
     # TODO ping addquote quote currency? 8Ball Reminder Cleverbot Online motd?/rules? rngImage 1d20 RPS! facts emoteText
     # TODO wiki strawpoll youtube weather joke???
-    @staticmethod
-    def get_command_list(plugin):
+
+    def get_command_list(self, plugin):
         cmd_list = [func for func in dir(plugin) if str(func).startswith("cmd_")]
         return cmd_list
 
@@ -49,7 +49,7 @@ class ChatManager(Bot):
             cmds += "```"
             await self.send_message(message.channel, cmds)
         else:
-            await self.send_message(message.channel, self.plugin_list[args[0][0]].get_command_list(self.plugin_list[args[0][0]]))
+            await self.send_message(message.channel, self.plugin_list[args[0][0]].command_list) # FIGURE OUT HOW TO GET ONLY PLUGIN CMD LIST
 
     async def cmd_coolest(self, message, *_):
         await self.send_message(message.channel, "{0} is the coolest!".format(message.author.name))
