@@ -1,6 +1,7 @@
 import constants
 import discord
 from chatmanager import bot
+import constants
 import asyncio  # learn this thing
 # import configparser at some point
 
@@ -14,8 +15,9 @@ async def on_ready():
     print(feather_bot.user.name)
     print(feather_bot.user.id)
     print("------------")
+    feather_bot.get_plugins()
     server = (list(feather_bot.servers)[0]) # servers returns a dict_values which is a view. use list() to convert
-                                            # dict_values don't support indexing...
+                                            # dict_values don't support indexing... also we ain't using this var atm
 
 @feather_bot.event
 async def on_message(message : discord.Message):
