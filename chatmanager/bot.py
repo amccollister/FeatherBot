@@ -41,7 +41,7 @@ class ChatManager(Bot):
                     for p in self.plugin_list.values():  # check plugin commands if it's not found in general
                         lst = p.get_plugin_list(p, self.command_list)
                         if "cmd_" + arg in lst:
-                            await self.send_message(message.channel, getattr(p, "cmd_" + arg)(args))
+                            await self.send_message(message.channel, getattr(p, "cmd_" + arg)(message, args))
                             break  # Once the cmd is found, break to avoid the else statement
                     else:          # If all else fails, tell them this isn't a command
                         await self.send_message(message.channel, "```That's not a command!"
@@ -67,13 +67,13 @@ class ChatManager(Bot):
             cmds += "```"
             await self.send_message(message.channel, cmds)
 
-    async def cmd_coolest(self, message, *_):
+    async def cmd_coolest(self, message, *_): # move to fun
         await self.send_message(message.channel, "{0} is the coolest!".format(message.author.name))
 
     async def cmd_test(self, message, *_):
         await self.send_message(message.channel, "If you see this, Andrew did something right.")
 
-    async def cmd_choose(self, message, *choice):
+    async def cmd_choose(self, message, *choice): # move to fun
         await self.send_message(message.channel, "The best is " + random.choice(choice[0]))
 
     async def cmd_hello(self, message, *_):

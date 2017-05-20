@@ -1,6 +1,7 @@
 from chatmanager import bot
 
 class Plugin(bot.ChatManager):
-     def cmd_testfun(self, *_):
-        return "This is a test from the Fun Plugin"
+    def cmd_testfun(self, *_):
+       return "This is a test from the Fun Plugin"
 
+    # 8 ball choose coolest
