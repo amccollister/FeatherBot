@@ -20,7 +20,7 @@ class ChatManager(Bot):
         return cmd_list
 
     def get_plugins(self):
-        for app in constants.APPS:
+        for app in constants.PLUGINS:
             print("Found plugin:", app)
             _plugin = import_module("chatmanager." + app)
             plugin = _plugin.Plugin(self.command_prefix, self.whitelist)
