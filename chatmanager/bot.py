@@ -15,7 +15,8 @@ class ChatManager(Bot):
         cmd_list = [func for func in dir(ChatManager) if str(func).startswith("cmd_")]
         return cmd_list
 
-    def get_plugin_list(self, plugin, general_list):
+    @staticmethod
+    def get_plugin_list(plugin, general_list):
         cmd_list = [func for func in dir(plugin) if str(func).startswith("cmd_") and func not in general_list]
         return cmd_list
 
@@ -23,7 +24,7 @@ class ChatManager(Bot):
         for app in constants.PLUGINS:
             print("Found plugin:", app)
             _plugin = import_module("chatmanager." + app)
-            plugin = _plugin.Plugin(self.command_prefix, self.whitelist)
+            plugin = _plugin.Plugin()  # create plugin objects
             self.plugin_list[app] = plugin
 
     def __init__(self, command_prefix, whitelist):
@@ -34,7 +35,7 @@ class ChatManager(Bot):
     async def incoming_message(self, message : discord.Message):  # check plugin commands then reject
         if message.content.startswith(self.command_prefix) and message.channel.id == self.whitelist:
                 args = message.content.split(" ")
-                arg = args.pop(0)[1:]
+                arg = args.pop(0)[1:].lower()
                 if "cmd_" + arg in self.command_list:    # check general commands
                     await getattr(self, "cmd_" + arg)(message, args)
                 else:
@@ -67,20 +68,28 @@ class ChatManager(Bot):
             cmds += "```"
             await self.send_message(message.channel, cmds)
 
-    async def cmd_coolest(self, message, *_): # move to fun
-        await self.send_message(message.channel, "{0} is the coolest!".format(message.author.name))
-
-    async def cmd_test(self, message, *_):
-        await self.send_message(message.channel, "If you see this, Andrew did something right.")
-
-    async def cmd_choose(self, message, *choice): # move to fun
-        await self.send_message(message.channel, "The best is " + random.choice(choice[0]))
+    async def cmd_ping(self, message, *_):
+        await self.send_message(message.channel, "Pong.")
 
     async def cmd_hello(self, message, *_):
-        await self.send_message(message.channel, "Hello I am {0}!".format(self.user.name))
+        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(message.author.name, self.user.name))
 
     async def cmd_me(self, message, *_):
-        await self.send_message(message.channel, "You are {0.author.name} in {0.channel.name}".format(message))
+        await self.send_message(message.channel, "You are {0.author.name} in {0.server.name} in the "
+                                                 "{0.channel.name} channel".format(message))
+    async def cmd_joined(self, message, *_):   # make usable on other users
+        server = message.server.name
+        date = message.author.joined_at.strftime("%B %d, %Y")
+        await self.send_message(message.channel, "{0.author.name} joined {1} on {2}!".format(message, server, date))
 
-    async def cmd_joined(self, message, *_):
-        await self.send_message(message.channel, "{0.name} joined on {0.joined_at}".format(message.author))
+    async def cmd_online(self, message, *_):
+        users = message.server.members
+        members = []
+        online_count = 0
+        for u in users:
+            if str(u.status) != "offline":
+                online_count += 1
+                members.append(u.name)
+        online = "There are **{0}** users online.```".format(online_count)
+        online += ", ".join(members) + "```"
+        await self.send_message(message.channel, online)
