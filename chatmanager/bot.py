@@ -1,5 +1,4 @@
 import discord
-import random
 import constants
 
 from discord.ext.commands import Bot
@@ -9,6 +8,7 @@ class ChatManager(Bot):
     command_list = []
     plugin_list = {}
     # TODO Reminder motd wiki weather
+
     @staticmethod
     def get_general_commands():
         cmd_list = [func for func in dir(ChatManager) if str(func).startswith("cmd_")]
@@ -42,14 +42,14 @@ class ChatManager(Bot):
                         lst = p.get_plugin_list(p, self.command_list)
                         if "cmd_" + arg in lst:
                             await self.send_message(message.channel, getattr(p, "cmd_" + arg)(message, args))
-                            break  # Once the cmd is found, break to avoid the else statement
-                    else:          # If all else fails, tell them this isn't a command
-                        await self.send_message(message.channel, "```That's not a command!"
-                                                                 "\nPlease use {0}help for a list of commands.```")\
-                                                                 .format(self.command_prefix)
+                            break      # Once the cmd is found, break to avoid the else statement
+                        else:          # If all else fails, tell them this isn't a command
+                            await self.send_message(message.channel, "```That's not a command!"
+                                                                     "\nPlease use {0}help for a list of commands.```"\
+                                                                     .format(self.command_prefix))
 
     async def cmd_help(self, message, *args):   # ADD HELP FOR COMMANDS AND ADD """AT THE BEGINNING"""
-        if args[0] == [] or args[0][0] not in self.plugin_list.keys():
+        if not args[0] or args[0][0] not in self.plugin_list.keys():
             cmds = "**Here's the current list of general commands:**```"
             for cmd in self.command_list:
                 cmds += (self.command_prefix + cmd[4:] + ", ")
@@ -93,3 +93,14 @@ class ChatManager(Bot):
         online = "There are **{0}** users online.```".format(online_count)
         online += ", ".join(members) + "```"
         await self.send_message(message.channel, online)
+
+    async def cmd_motd(self, message, *_):
+        await self.send_message(message.channel, constants.MOTD)
+
+    async def cmd_setmotd(self, message, *args):
+        if not args[0]:
+            await self.send_message(message.channel, "```You didn't set a new MOTD!```")
+        else:
+            new_motd = " ".join(args[0])
+            constants.MOTD = new_motd
+            await self.send_message(message.channel, "New motd set!")
