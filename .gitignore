@@ -93,3 +93,4 @@ constants.py
 quotes.txt
 *.xml
 *.iml
+*.sqlite

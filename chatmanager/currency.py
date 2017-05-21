@@ -1,5 +1,10 @@
+import sqlite3 as sql
 from chatmanager import bot
 
 class Plugin(bot.ChatManager):
-    def cmd_testcur(self, *_):
-        return "This is a test of the currency function"
+    def __init__(self):
+        pass
+    # TODO balance give lottery leaderboard slots flip blackjack?
+
+    def cmd_moneyping(self, *_):
+        return "$$$ pong"
