@@ -8,8 +8,7 @@ from importlib import import_module
 class ChatManager(Bot):
     command_list = []
     plugin_list = {}
-    # TODO Reminder motd
-    # TODO wiki weather
+    # TODO Reminder motd wiki weather
     @staticmethod
     def get_general_commands():
         cmd_list = [func for func in dir(ChatManager) if str(func).startswith("cmd_")]
@@ -49,7 +48,7 @@ class ChatManager(Bot):
                                                                  "\nPlease use {0}help for a list of commands.```")\
                                                                  .format(self.command_prefix)
 
-    async def cmd_help(self, message, *args):
+    async def cmd_help(self, message, *args):   # ADD HELP FOR COMMANDS AND ADD """AT THE BEGINNING"""
         if args[0] == [] or args[0][0] not in self.plugin_list.keys():
             cmds = "**Here's the current list of general commands:**```"
             for cmd in self.command_list:
