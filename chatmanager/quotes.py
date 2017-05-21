@@ -6,15 +6,12 @@ from chatmanager import bot
 class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
     # TODO: removequote undoquote updatequote quote(parameter for specific number)
+
     def __init__(self):
         self.con = sql.connect("db/quotes.sqlite")
         self.c = self.con.cursor()
         self.c.execute("CREATE TABLE IF NOT EXISTS QUOTES (ID INTEGER PRIMARY KEY, NAME TEXT, QUOTE TEXT, DATE TEXT)")
         self.con.commit()
-
-    def cmd_quoteping(self, *_):
-        # return datetime.strptime("2017-05-20", "%Y-%m-%d").strftime("%B %d, %Y")
-        return "\"\" ping"
 
     def cmd_addquote(self, message, *args):
         name = args[0].pop(0)

@@ -4,7 +4,7 @@ from chatmanager import bot
 class Plugin(bot.ChatManager):
     def __init__(self):
         pass
-    # TODO balance give lottery leaderboard slots
+    # TODO balance give lottery leaderboard slots flip blackjack?
 
     def cmd_moneyping(self, *_):
         return "$$$ pong"
