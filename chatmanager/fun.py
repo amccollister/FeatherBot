@@ -4,7 +4,7 @@ from chatmanager import bot
 class Plugin(bot.ChatManager):
     def __init__(self):
         pass
-
+    # TODO: EmoteText Fact ROCKPAPERSCISSORS D20 8Ball rngImage randomWiki strawpoll joke Cleverbot
     def cmd_funping(self, *_):
         return "Fun pong"
 

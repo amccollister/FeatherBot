@@ -8,8 +8,8 @@ from importlib import import_module
 class ChatManager(Bot):
     command_list = []
     plugin_list = {}
-    # TODO ping addquote quote currency? 8Ball Reminder Cleverbot Online motd?/rules? rngImage 1d20 RPS! facts emoteText
-    # TODO wiki strawpoll youtube weather joke???
+    # TODO Reminder motd
+    # TODO wiki weather
     @staticmethod
     def get_general_commands():
         cmd_list = [func for func in dir(ChatManager) if str(func).startswith("cmd_")]
@@ -46,7 +46,8 @@ class ChatManager(Bot):
                             break  # Once the cmd is found, break to avoid the else statement
                     else:          # If all else fails, tell them this isn't a command
                         await self.send_message(message.channel, "```That's not a command!"
-                                                                 "\nPlease use !help for a list of commands.```")
+                                                                 "\nPlease use {0}help for a list of commands.```")\
+                                                                 .format(self.command_prefix)
 
     async def cmd_help(self, message, *args):
         if args[0] == [] or args[0][0] not in self.plugin_list.keys():
