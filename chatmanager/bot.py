@@ -19,6 +19,12 @@ class ChatManager(Bot):
         cmd_list = [func for func in dir(plugin) if str(func).startswith("cmd_") and func not in general_list]
         return cmd_list
 
+    @staticmethod
+    def discord_limit(string):
+        if len(string) < constants.DISCORD_MSG_LIMIT:
+            return string
+        return "```My message was too long! Please try again.```"
+
     def get_plugins(self):
         for app in constants.PLUGINS:
             print("Found plugin:", app)
@@ -41,7 +47,8 @@ class ChatManager(Bot):
                     for p in self.plugin_list.values():  # check plugin commands if it's not found in general
                         lst = p.get_plugin_list(p, self.command_list)
                         if "cmd_" + arg in lst:
-                            await self.send_message(message.channel, getattr(p, "cmd_" + arg)(message, args))
+                            await self.send_message(message.channel,
+                                                    self.discord_limit(getattr(p, "cmd_" + arg)(message, args)))
                             break      # Once the cmd is found, break to avoid the else statement
                     else:          # If all else fails, tell them this isn't a command
                         await self.send_message(message.channel, "```That's not a command!"

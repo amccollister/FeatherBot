@@ -13,7 +13,7 @@ class Plugin(bot.ChatManager):
         self.c.execute("CREATE TABLE IF NOT EXISTS QUOTES (ID INTEGER PRIMARY KEY, NAME TEXT, QUOTE TEXT, DATE TEXT)")
         self.con.commit()
 
-    def cmd_addquote(self, message, *args):
+    def cmd_addquote(self, message, *args): #check for 2 args and sanitize input. no '
         name = args[0].pop(0)
         date = args[0].pop()
         quote = " ".join(args[0])

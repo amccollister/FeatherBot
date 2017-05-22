@@ -4,7 +4,7 @@ from chatmanager import bot
 class Plugin(bot.ChatManager):
     def __init__(self):
         pass
-    # TODO: Fact D20 rngImage randomWiki strawpoll joke Cleverbot
+    # TODO: Fact rngImage randomWiki strawpoll joke Cleverbot
 
     def cmd_coolest(self, message, *_):
         return "{0} is the coolest!".format(message.author.name)
@@ -37,7 +37,7 @@ class Plugin(bot.ChatManager):
         return "{0}! {1}!".format(result.upper(), win_loss)
 
     def cmd_8ball(self, message, *args):
-        answers = ["It is certain", "It is decidedly so", "Without a doubt", "Yes definitely", "You may rely on it"
+        answers = ["It is certain", "It is decidedly so", "Without a doubt", "Yes definitely", "You may rely on it",
                    "As I see it, yes", "Most likely", "Very doubtful", "Yes", "Signs point to yes", "Ask again later",
                    "Reply hazy try again", "Better not tell you now", "Cannot predict it now", "My reply is no",
                    "Concentrate and ask again", "Don't count on it", "My sources say no", "Outlook not so good"]
@@ -46,11 +46,26 @@ class Plugin(bot.ChatManager):
             return "It's blank. You didn't ask it anything."
         return "{0} looks into the Magic 8 Ball. The die pops up and reads: \"{1}\"".format(message.author.name, fate)
 
-    def cmd_emotetext(self, message, *args):
-        if len(args[0]) < 4:
+    def cmd_emotetext(self, _, *args):
+        if len(args[0]) < 5:
             return "Do it yourself you lazy bum."
         emote = " {0} ".format(args[0].pop(0))
         return "{0}{1}{0}".format(emote, emote.join(args[0]))
 
-    def cmd_d20(self, message, *args):
-        pass
+    def cmd_roll(self, message, *args):
+        try:
+            dice = args[0][0].split("d")
+            if not dice[0] or dice[0] == "1":
+                roll = random.randint(1, int(dice[1]))
+                return "The d{0} landed on {1}".format(dice[1], str(roll))
+            else:
+                rolls = []
+                roll_total = 0
+                for i in range(int(dice[0])):
+                    roll = random.randint(1, int(dice[1]))
+                    roll_total += roll
+                    rolls.append(roll)
+                return "{0} rolled {1}d{2} for a total of {3}.```{4}```".format(message.author.name, dice[0], dice[1],
+                                                                           roll_total, " + ".join(str(r)for r in rolls))
+        except:
+            return "Please roll again. The dice landed on the floor. :("
