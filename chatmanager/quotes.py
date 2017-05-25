@@ -46,7 +46,7 @@ class Plugin(bot.ChatManager):
         self.c.execute("SELECT last_insert_rowid();")
         id = self.c.fetchone()[0]
         self.con.commit()
-        return "{0} **added** Quote #{1} to remember when {2} said \"{3}\"".format(message.author.name,  # hide '' from user
+        return "{0} **added** Quote #{1} to remember when {2} said \"{3}\"".format(message.author.nick,  # hide '' from user
                                                                                id, name, quote.replace("''", "'"))
 
     def cmd_quote(self, message, *args):
@@ -67,7 +67,7 @@ class Plugin(bot.ChatManager):
         id = self.c.fetchone()[0]
         try:
             del_quote = self.remove_quote(id)
-            return "{0} **removed** {1}".format(message.author.name, self.print_quote(del_quote))
+            return "{0} **removed** {1}".format(message.author.nick, self.print_quote(del_quote))
         except:
             return "There's no quote to undo!"
 
@@ -75,6 +75,6 @@ class Plugin(bot.ChatManager):
         try:
             del_quote = self.remove_quote(int(args[0][0]))
             if not del_quote: raise
-            return "{0} **removed** {1}".format(message.author.name, self.print_quote(del_quote))
+            return "{0} **removed** {1}".format(message.author.nick, self.print_quote(del_quote))
         except Exception as e:
             return "I could not find a quote with that ID."

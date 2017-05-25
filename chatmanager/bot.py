@@ -7,7 +7,7 @@ from importlib import import_module
 class ChatManager(Bot):
     command_list = []
     plugin_list = {}
-    # TODO Reminder wiki weather
+    # TODO wiki weather
 
     @staticmethod
     def get_general_commands():
@@ -78,16 +78,16 @@ class ChatManager(Bot):
     async def cmd_ping(self, message, *_):
         await self.send_message(message.channel, "Pong.")
 
-    async def cmd_hello(self, message, *_):
-        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(message.author.name, self.user.name))
+    async def cmd_hello(self, message : discord.Message, *_):
+        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(message.author.nick, self.user.name))
 
     async def cmd_me(self, message, *_):
-        await self.send_message(message.channel, "You are {0.author.name} in {0.server.name} in the "
+        await self.send_message(message.channel, "You are {0.author.nick} in {0.server.name} in the "
                                                  "{0.channel.name} channel".format(message))
     async def cmd_joined(self, message, *_):   # make usable on other users
         server = message.server.name
         date = message.author.joined_at.strftime("%B %d, %Y")
-        await self.send_message(message.channel, "{0.author.name} joined {1} on {2}!".format(message, server, date))
+        await self.send_message(message.channel, "{0.author.nick} joined {1} on {2}!".format(message, server, date))
 
     async def cmd_online(self, message, *_):
         users = message.server.members

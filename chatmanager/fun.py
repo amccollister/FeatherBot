@@ -7,7 +7,7 @@ class Plugin(bot.ChatManager):
     # TODO: Fact rngImage randomWiki strawpoll joke Cleverbot
 
     def cmd_coolest(self, message, *_):
-        return "{0} is the coolest!".format(message.author.name)
+        return "{0} is the coolest!".format(message.author.nick)
 
     def cmd_choose(self, *choice):
         return "I choose \"{0}\" this time.".format(random.choice(choice[1]))
@@ -16,7 +16,7 @@ class Plugin(bot.ChatManager):
         choices = ["rock", "paper", "scissors"]
         ai_choice = random.choice(choices)
         if not throw[0] or throw[0][0].lower() not in choices:
-            return "Come on, {0}... That's not a valid throw!".format(message.author.name)
+            return "Come on, {0}... That's not a valid throw!".format(message.author.nick)
         ply_choice = throw[0][0].lower()
         if (ply_choice == "rock" and ai_choice == "paper") or\
            (ply_choice == "paper" and ai_choice == "scissors") or\
@@ -44,7 +44,7 @@ class Plugin(bot.ChatManager):
         fate = random.choice(answers)
         if not args[0]:
             return "It's blank. You didn't ask it anything."
-        return "{0} looks into the Magic 8 Ball. The die pops up and reads: **\"{1}\"**".format(message.author.name, fate)
+        return "{0} looks into the Magic 8 Ball. The die pops up and reads: **\"{1}\"**".format(message.author.nick, fate)
 
     def cmd_emotetext(self, _, *args):
         if len(args[0]) < 5:
@@ -65,7 +65,7 @@ class Plugin(bot.ChatManager):
                     roll = random.randint(1, int(dice[1]))
                     roll_total += roll
                     rolls.append(roll)
-                return "{0} rolled {1}d{2} for a total of {3}.```{4}```".format(message.author.name, dice[0], dice[1],
+                return "{0} rolled {1}d{2} for a total of {3}.```{4}```".format(message.author.nick, dice[0], dice[1],
                                                                            roll_total, " + ".join(str(r)for r in rolls))
         except:
             return "Please roll again. The dice landed on the floor. :("
