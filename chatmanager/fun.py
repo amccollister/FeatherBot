@@ -26,13 +26,13 @@ class Plugin(bot.ChatManager):
             return "Looks like we both picked {0}. Everyone loses!".format(ply_choice)
         return "I chose {0}, but {1} beats {0}. You win this time...".format(ai_choice, ply_choice)
 
-    def cmd_flip(self, _, *flip):
+    def cmd_flip(self, _, *flip_args):
         flips = ["heads", "tails"]
         result = random.choice(flips)
         win_loss = "LOSER"
-        if not flip[0] or flip[0][0].lower() not in flips:
+        if not flip_args[0] or flip_args[0][0].lower() not in flips:
             return "What kind of coin are you flipping? It's \"heads\" or \"tails\"."
-        if result.lower() == flip[0][0].lower():
+        if result.lower() == flip_args[0][0].lower():
             win_loss = "WINNER"
         return "{0}! {1}!".format(result.upper(), win_loss)
 
@@ -44,7 +44,7 @@ class Plugin(bot.ChatManager):
         fate = random.choice(answers)
         if not args[0]:
             return "It's blank. You didn't ask it anything."
-        return "{0} looks into the Magic 8 Ball. The die pops up and reads: \"{1}\"".format(message.author.name, fate)
+        return "{0} looks into the Magic 8 Ball. The die pops up and reads: **\"{1}\"**".format(message.author.name, fate)
 
     def cmd_emotetext(self, _, *args):
         if len(args[0]) < 5:

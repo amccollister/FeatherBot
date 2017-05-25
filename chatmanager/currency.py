@@ -24,8 +24,8 @@ class Plugin(bot.ChatManager):
     def cmd_slots(self, *_):
         pass
 
-    def cmd_flip(self, *_):
-        pass
+    #def cmd_flip(self, *_):
+       # pass
 
     def cmd_blackjack(self, *_): # ???
         pass
