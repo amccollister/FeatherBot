@@ -50,3 +50,12 @@ class Plugin(bot.ChatManager):
             date = datetime.strptime(quote[3], "%Y-%m-%d").strftime("%B %d, %Y")
             date = " on " + date
         return "Quote #{0}: \"{1}\" by {2}".format(quote[0], quote[2], quote[1]) + date
+
+    def cmd_undoquote(self, *_):
+        pass
+
+    def cmd_updatequote(self, *_):
+        pass
+
+    def cmd_removequote(self, *_):
+        pass
