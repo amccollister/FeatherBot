@@ -8,3 +8,24 @@ class Plugin(bot.ChatManager):
 
     def cmd_moneyping(self, *_):
         return "$$$ pong"
+
+    def cmd_balance(self, *_):
+        pass
+
+    def cmd_give(self, *_):
+        pass
+
+    def cmd_lottery(self, *_):
+        pass
+
+    def cmd_leaderboard(self, *_):
+        pass
+
+    def cmd_slots(self, *_):
+        pass
+
+    #def cmd_flip(self, *_):
+       # pass
+
+    def cmd_blackjack(self, *_): # ???
+        pass

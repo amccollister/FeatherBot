@@ -7,7 +7,7 @@ from importlib import import_module
 class ChatManager(Bot):
     command_list = []
     plugin_list = {}
-    # TODO Reminder wiki weather
+    # TODO wiki weather
 
     @staticmethod
     def get_general_commands():
@@ -18,6 +18,12 @@ class ChatManager(Bot):
     def get_plugin_list(plugin, general_list):
         cmd_list = [func for func in dir(plugin) if str(func).startswith("cmd_") and func not in general_list]
         return cmd_list
+
+    @staticmethod
+    def discord_limit(string):
+        if len(string) < constants.DISCORD_MSG_LIMIT:
+            return string
+        return "```My message was too long! Please try again.```"
 
     def get_plugins(self):
         for app in constants.PLUGINS:
@@ -41,7 +47,8 @@ class ChatManager(Bot):
                     for p in self.plugin_list.values():  # check plugin commands if it's not found in general
                         lst = p.get_plugin_list(p, self.command_list)
                         if "cmd_" + arg in lst:
-                            await self.send_message(message.channel, getattr(p, "cmd_" + arg)(message, args))
+                            await self.send_message(message.channel,
+                                                    self.discord_limit(getattr(p, "cmd_" + arg)(message, args)))
                             break      # Once the cmd is found, break to avoid the else statement
                     else:          # If all else fails, tell them this isn't a command
                         await self.send_message(message.channel, "```That's not a command!"
@@ -71,16 +78,16 @@ class ChatManager(Bot):
     async def cmd_ping(self, message, *_):
         await self.send_message(message.channel, "Pong.")
 
-    async def cmd_hello(self, message, *_):
-        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(message.author.name, self.user.name))
+    async def cmd_hello(self, message : discord.Message, *_):
+        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(message.author.nick, self.user.name))
 
     async def cmd_me(self, message, *_):
-        await self.send_message(message.channel, "You are {0.author.name} in {0.server.name} in the "
+        await self.send_message(message.channel, "You are {0.author.nick} in {0.server.name} in the "
                                                  "{0.channel.name} channel".format(message))
     async def cmd_joined(self, message, *_):   # make usable on other users
         server = message.server.name
         date = message.author.joined_at.strftime("%B %d, %Y")
-        await self.send_message(message.channel, "{0.author.name} joined {1} on {2}!".format(message, server, date))
+        await self.send_message(message.channel, "{0.author.nick} joined {1} on {2}!".format(message, server, date))
 
     async def cmd_online(self, message, *_):
         users = message.server.members
