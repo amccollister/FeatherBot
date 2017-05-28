@@ -28,4 +28,4 @@ class Plugin(bot.ChatManager):
 
     async def cmd_remindme(self, message, *args):
         self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
-        await self.bot.send_message(message.channel, "It worked! You'll get a reminder in 5 seconds")
+        return "It worked! You'll get a reminder in 5 seconds"

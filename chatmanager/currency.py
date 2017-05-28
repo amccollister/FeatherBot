@@ -7,7 +7,7 @@ class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
     bal = 10000
     bot = None
-    # TODO balance give lottery leaderboard slots flip blackjack? CHECK INPUT METHOD
+    # TODO lottery slots blackjack?
 
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
@@ -22,7 +22,7 @@ class Plugin(bot.ChatManager):
     async def payout(self):  # SET TO ONLY PEOPLE ONLINE
         while True:
             await asyncio.sleep(10)
-            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 1")
+            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 100")
             self.con.commit()
 
     def add_users(self, mem_list):
@@ -45,11 +45,11 @@ class Plugin(bot.ChatManager):
         try:
             input = int(args[0][0])
             if input <= 0:
-                return "You can't bet nothing!"
+                return "You can't offer nothing!"
             elif input > bal:
-                return "You don't have enough to bet!"
+                return "You don't have enough to offer!"
         except:
-            return "You didn't place a bet!"
+            return "You didn't place an offer!"
         return input
 
     def cmd_moneyping(self, *_):
@@ -62,14 +62,26 @@ class Plugin(bot.ChatManager):
         bal = self.get_bal(message.author.id)
         return "Hello, <@{0}>! You currently have __**{1}**__ points.".format(message.author.id, format(bal, ",d"))
 
-    def cmd_give(self, *_):
+    def cmd_buy(self, *_):
         pass
+
+    def cmd_give(self, message, *args):
+        try:
+            user_id = int(args[0][1].lstrip("<!@").rstrip(">"))
+        except:
+            return "You gave nothing to no one. Charitable! (I could not find that user)"
+        money = self.check_input(message, args[0])
+        if type(money) is str:
+            return money
+        self.update_bal(user_id, money)
+        self.update_bal(message.author.id, money * -1)
+        return "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",d"), user_id)
 
     def cmd_lottery(self, *_):
         pass
 
     def cmd_leaderboard(self, *_):
-        self.c.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 5")
+        self.c.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
         leaders = self.c.fetchall()
         output = "__**LEADERBOARD**__```"
         for l in leaders:
@@ -79,11 +91,10 @@ class Plugin(bot.ChatManager):
             output += "{0}\t\t{1}\n".format(name, format(l[1], ",d"))
         return output + "```"
 
-
     def cmd_slots(self, *_):
         pass
 
-    def cmd_bet(self, message, *args):  # flip 44k
+    def cmd_bet(self, message, *args):  # BET 44k BET ALL
         payout = self.check_input(message, args[0])
         if type(payout) is str:
             return payout
@@ -95,7 +106,7 @@ class Plugin(bot.ChatManager):
             result = "LOST"
         self.update_bal(message.author.id, payout)
         return "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result,
-                                                                  format(self.get_bal(message.author.id), ",d"))
+                                                                     format(self.get_bal(message.author.id), ",d"))
 
-    def cmd_blackjack(self, *_): # ???
+    def cmd_blackjack(self, *_):  # ???
         pass

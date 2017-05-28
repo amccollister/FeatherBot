@@ -30,7 +30,7 @@ class Plugin(bot.ChatManager):
             date = " on " + date
         return "Quote #{0}: \"{1}\" by {2}".format(quote[0], quote[2], quote[1]) + date
 
-    def cmd_addquote(self, message, *args):
+    def cmd_addquote(self, message, *args): # fix improper input
         if not args[0]:
             return "You didn't add a quote."
         name = args[0].pop(0)
@@ -46,10 +46,10 @@ class Plugin(bot.ChatManager):
         self.c.execute("SELECT last_insert_rowid();")
         id = self.c.fetchone()[0]
         self.con.commit()
-        return "{0} **added** Quote #{1} to remember when {2} said \"{3}\"".format(message.author.nick,  # hide '' from user
+        return "{0} **added** Quote #{1} to remember when {2} said \"{3}\"".format(self.get_name(message),  # hide '' from user
                                                                                id, name, quote.replace("''", "'"))
 
-    def cmd_quote(self, message, *args):
+    def cmd_quote(self, message, *args): # fix detecting empty db
         if not args[0]:
             self.c.execute("SELECT ROWID, * FROM QUOTES")
             quote = random.choice(self.c.fetchall())
@@ -67,7 +67,7 @@ class Plugin(bot.ChatManager):
         id = self.c.fetchone()[0]
         try:
             del_quote = self.remove_quote(id)
-            return "{0} **removed** {1}".format(message.author.nick, self.print_quote(del_quote))
+            return "{0} **removed** {1}".format(self.get_name(message), self.print_quote(del_quote))
         except:
             return "There's no quote to undo!"
 
@@ -75,6 +75,6 @@ class Plugin(bot.ChatManager):
         try:
             del_quote = self.remove_quote(int(args[0][0]))
             if not del_quote: raise
-            return "{0} **removed** {1}".format(message.author.nick, self.print_quote(del_quote))
+            return "{0} **removed** {1}".format(self.get_name(message), self.print_quote(del_quote))
         except Exception as e:
             return "I could not find a quote with that ID."

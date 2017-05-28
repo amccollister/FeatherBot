@@ -32,6 +32,12 @@ class ChatManager(Bot):
             plugin = _plugin.Plugin(self)#list(self.servers)[0])  # create plugin objects
             self.plugin_list[app] = plugin
 
+    def get_name(self, message):
+        name = message.author.nick
+        if not name:
+            name = message.author.name
+        return name
+
     def __init__(self, command_prefix, whitelist):
         super().__init__(command_prefix)
         self.whitelist = whitelist
@@ -57,7 +63,7 @@ class ChatManager(Bot):
                                                                  "\nPlease use {0}help for a list of commands.```"
                                                                  .format(self.command_prefix))
 
-    async def cmd_help(self, message, *args):   # ADD HELP FOR COMMANDS AND ADD """AT THE BEGINNING"""
+    async def cmd_help(self, message, *args):   # ADD HELP FOR COMMANDS AND ADD """AT THE BEGINNING""" __DOC__
         if not args[0] or args[0][0] not in self.plugin_list.keys():
             cmds = "**Here's the current list of general commands:**```"
             for cmd in self.command_list:
@@ -81,15 +87,16 @@ class ChatManager(Bot):
         await self.send_message(message.channel, "Pong.")
 
     async def cmd_hello(self, message : discord.Message, *_):
-        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(message.author.nick, self.user.name))
+        name = self.get_name(message)
+        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(self.get_name(message), self.user.name))
 
     async def cmd_me(self, message, *_):
-        await self.send_message(message.channel, "You are {0.author.nick} in {0.server.name} in the "
-                                                 "{0.channel.name} channel".format(message))
+        await self.send_message(message.channel, "You are {1} in {0.server.name} in the "
+                                                 "{0.channel.name} channel".format(message, self.get_name(message)))
     async def cmd_joined(self, message, *_):   # make usable on other users
         server = message.server.name
         date = message.author.joined_at.strftime("%B %d, %Y")
-        await self.send_message(message.channel, "{0.author.nick} joined {1} on {2}!".format(message, server, date))
+        await self.send_message(message.channel, "{0} joined {1} on {2}!".format(self.get_name(message), server, date))
 
     async def cmd_online(self, message, *_):
         users = message.server.members
@@ -113,6 +120,3 @@ class ChatManager(Bot):
             new_motd = " ".join(args[0])
             constants.MOTD = new_motd
             await self.send_message(message.channel, "**New MOTD set!**")
-
-    async def cmd_test(self, message, *args):
-        print(args[0][0])
