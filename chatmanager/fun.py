@@ -26,7 +26,7 @@ class Plugin(bot.ChatManager):
             return "Looks like we both picked {0}. Everyone loses!".format(ply_choice)
         return "I chose {0}, but {1} beats {0}. You win this time...".format(ai_choice, ply_choice)
 
-    def cmd_toss(self, _, *flip_args):
+    def cmd_flip(self, _, *flip_args):
         flips = ["heads", "tails"]
         result = random.choice(flips)
         win_loss = "LOSER"

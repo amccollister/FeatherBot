@@ -10,8 +10,12 @@ class Plugin(bot.ChatManager):
     reminders = [] # reminder list
     bot = None
 
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, client):
+        self.con = sql.connect("db/reminders.sqlite")
+        self.c = self.con.cursor()
+        self.c.execute("CREATE TABLE IF NOT EXISTS REMINDERS (ID INTEGER PRIMARY KEY, REMIND TEXT, DATE TEXT)")
+        self.con.commit()
+        self.bot = client
         asyncio.async(self.check_reminders())
 
     @asyncio.coroutine
