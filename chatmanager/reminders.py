@@ -26,6 +26,6 @@ class Plugin(bot.ChatManager):
                 self.reminders.pop()
             await asyncio.sleep(1)
 
-    async def cmd_remindme(self, message, *args):
+    def cmd_remindme(self, message, *args):
         self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
         return "It worked! You'll get a reminder in 5 seconds"
