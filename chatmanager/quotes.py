@@ -6,7 +6,7 @@ from chatmanager import bot
 class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
 
-    def __init__(self):
+    def __init__(self, *_):
         self.con = sql.connect("db/quotes.sqlite", isolation_level=None)
         self.c = self.con.cursor()
         self.c.execute("CREATE TABLE IF NOT EXISTS QUOTES (NAME TEXT, QUOTE TEXT, DATE TEXT)")

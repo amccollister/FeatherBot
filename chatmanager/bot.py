@@ -29,7 +29,7 @@ class ChatManager(Bot):
         for app in constants.PLUGINS:
             print("Found plugin:", app)
             _plugin = import_module("chatmanager." + app)
-            plugin = _plugin.Plugin()  # create plugin objects
+            plugin = _plugin.Plugin(self)#list(self.servers)[0])  # create plugin objects
             self.plugin_list[app] = plugin
 
     def __init__(self, command_prefix, whitelist):
@@ -47,8 +47,10 @@ class ChatManager(Bot):
                     for p in self.plugin_list.values():  # check plugin commands if it's not found in general
                         lst = p.get_plugin_list(p, self.command_list)
                         if "cmd_" + arg in lst:
-                            await self.send_message(message.channel,
-                                                    self.discord_limit(getattr(p, "cmd_" + arg)(message, args)))
+                            #add checker for coroutine.... wait no you don't dum dum. adjust this later
+                            returned = getattr(p, "cmd_" + arg)(message, args)
+                            if type(returned) is str:
+                                await self.send_message(message.channel, self.discord_limit(returned))
                             break      # Once the cmd is found, break to avoid the else statement
                     else:          # If all else fails, tell them this isn't a command
                         await self.send_message(message.channel, "```That's not a command!"
