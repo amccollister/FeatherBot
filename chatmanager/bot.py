@@ -29,8 +29,14 @@ class ChatManager(Bot):
         for app in constants.PLUGINS:
             print("Found plugin:", app)
             _plugin = import_module("chatmanager." + app)
-            plugin = _plugin.Plugin()  # create plugin objects
+            plugin = _plugin.Plugin(self)#list(self.servers)[0])  # create plugin objects
             self.plugin_list[app] = plugin
+
+    def get_name(self, message):
+        name = message.author.nick
+        if not name:
+            name = message.author.name
+        return name
 
     def __init__(self, command_prefix, whitelist):
         super().__init__(command_prefix)
@@ -47,15 +53,17 @@ class ChatManager(Bot):
                     for p in self.plugin_list.values():  # check plugin commands if it's not found in general
                         lst = p.get_plugin_list(p, self.command_list)
                         if "cmd_" + arg in lst:
-                            await self.send_message(message.channel,
-                                                    self.discord_limit(getattr(p, "cmd_" + arg)(message, args)))
+                            #add checker for coroutine.... wait no you don't dum dum. adjust this later
+                            returned = getattr(p, "cmd_" + arg)(message, args)
+                            if type(returned) is str:
+                                await self.send_message(message.channel, self.discord_limit(returned))
                             break      # Once the cmd is found, break to avoid the else statement
                     else:          # If all else fails, tell them this isn't a command
                         await self.send_message(message.channel, "```That's not a command!"
                                                                  "\nPlease use {0}help for a list of commands.```"
                                                                  .format(self.command_prefix))
 
-    async def cmd_help(self, message, *args):   # ADD HELP FOR COMMANDS AND ADD """AT THE BEGINNING"""
+    async def cmd_help(self, message, *args):   # ADD HELP FOR COMMANDS AND ADD """AT THE BEGINNING""" __DOC__
         if not args[0] or args[0][0] not in self.plugin_list.keys():
             cmds = "**Here's the current list of general commands:**```"
             for cmd in self.command_list:
@@ -79,15 +87,16 @@ class ChatManager(Bot):
         await self.send_message(message.channel, "Pong.")
 
     async def cmd_hello(self, message : discord.Message, *_):
-        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(message.author.nick, self.user.name))
+        name = self.get_name(message)
+        await self.send_message(message.channel, "Hello, {0}. I am {1}!".format(self.get_name(message), self.user.name))
 
     async def cmd_me(self, message, *_):
-        await self.send_message(message.channel, "You are {0.author.nick} in {0.server.name} in the "
-                                                 "{0.channel.name} channel".format(message))
+        await self.send_message(message.channel, "You are {1} in {0.server.name} in the "
+                                                 "{0.channel.name} channel".format(message, self.get_name(message)))
     async def cmd_joined(self, message, *_):   # make usable on other users
         server = message.server.name
         date = message.author.joined_at.strftime("%B %d, %Y")
-        await self.send_message(message.channel, "{0.author.nick} joined {1} on {2}!".format(message, server, date))
+        await self.send_message(message.channel, "{0} joined {1} on {2}!".format(self.get_name(message), server, date))
 
     async def cmd_online(self, message, *_):
         users = message.server.members

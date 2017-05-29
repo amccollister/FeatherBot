@@ -94,3 +94,4 @@ quotes.txt
 *.xml
 *.iml
 *.sqlite
+*.sqlite-journal
