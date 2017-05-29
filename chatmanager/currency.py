@@ -1,12 +1,14 @@
 import sqlite3 as sql
 import random
 import asyncio
+import constants
+
 from chatmanager import bot
 
 class Plugin(bot.ChatManager):
-    con = c = None  # Defining connection and cursor for sql DB
-    bal = 10000
-    bot = None
+    con = c = bot = None  # Defining connection and cursor for sql DB
+    lottery = []
+    server = None
     # TODO lottery
 
     def __init__(self, client):
@@ -21,9 +23,24 @@ class Plugin(bot.ChatManager):
     @asyncio.coroutine
     async def payout(self):  # SET TO ONLY PEOPLE ONLINE
         while True:
-            await asyncio.sleep(60)
+            await asyncio.sleep(15)
             self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 1000")
             self.con.commit()
+            await self.bot.send_message(self.bot.get_channel("312852004999266304"), self.draw_lottery())
+
+    def draw_lottery(self):
+        if not self.lottery:
+            return "__**LOTTERY**__\nNobody bought any tickets."
+        user_id = random.choice(self.lottery)
+        payout = len(self.lottery) * constants.LOTTERY_PRICE
+        tickets = 0
+        for ticket in self.lottery:
+            if ticket == user_id:
+                tickets += 1
+        self.lottery = []
+        self.update_bal(user_id, payout)
+        return "__**LOTTERY**__\nCONGRATULATIONS to <@{0}> on winning __**{1}**__ " \
+               "points with {2} tickets.".format(user_id, format(payout, ",d"), tickets)
 
     def add_users(self, mem_list):
         for m in mem_list:
@@ -62,8 +79,15 @@ class Plugin(bot.ChatManager):
         bal = self.get_bal(message.author.id)
         return "Hello, <@{0}>! You currently have __**{1}**__ points.".format(message.author.id, format(bal, ",d"))
 
-    def cmd_buy(self, *_):
-        pass
+    def cmd_buy(self, message, *args):
+        tickets = self.check_input(message, args[0])
+        if type(tickets) is str:  return tickets
+        cost = tickets * constants.LOTTERY_PRICE
+        if cost > self.get_bal(message.author.id): return "You can't afford that many tickets!"
+        for i in range(tickets):
+            self.lottery.append(message.author.id)
+        self.update_bal(message.author.id, cost * -1)
+        return "__**LOTTERY**__\n<@{0}> just purchased {1} tickets!".format(message.author.id, tickets)
 
     def cmd_give(self, message, *args):
         try:
@@ -78,7 +102,7 @@ class Plugin(bot.ChatManager):
         return "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",.0f"), user_id)
 
     def cmd_lottery(self, *_):
-        pass
+        return "__**LOTTERY**__\nThe jackpot sits at __**{:,d}**__ points.".format(len(self.lottery)*constants.LOTTERY_PRICE)
 
     def cmd_leaderboard(self, *_):
         self.c.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
