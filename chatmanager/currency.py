@@ -7,7 +7,7 @@ class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
     bal = 10000
     bot = None
-    # TODO lottery slots blackjack?
+    # TODO lottery
 
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
@@ -21,8 +21,8 @@ class Plugin(bot.ChatManager):
     @asyncio.coroutine
     async def payout(self):  # SET TO ONLY PEOPLE ONLINE
         while True:
-            await asyncio.sleep(10)
-            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 100")
+            await asyncio.sleep(60)
+            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 1000")
             self.con.commit()
 
     def add_users(self, mem_list):
@@ -75,7 +75,7 @@ class Plugin(bot.ChatManager):
             return money
         self.update_bal(user_id, money)
         self.update_bal(message.author.id, money * -1)
-        return "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",d"), user_id)
+        return "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",.0f"), user_id)
 
     def cmd_lottery(self, *_):
         pass
@@ -88,11 +88,39 @@ class Plugin(bot.ChatManager):
             member = list(self.bot.servers)[0].get_member(str(l[0]))
             name = member.nick
             if not name:  name = member.name
-            output += "{0}\t\t{1}\n".format(name, format(l[1], ",d"))
+            output += "{0}\t\t{1}\n".format(name, format(l[1], ",.0f"))
         return output + "```"
 
-    def cmd_slots(self, *_):
-        pass
+    def cmd_slots(self, message, *args):
+        bet = self.check_input(message, args[0])
+        if type(bet) is str:
+            return bet
+        wheel = [":white_check_mark:", ":seven:", ":bell:", ":no_entry_sign:",
+                 ":large_blue_diamond:", ":moneybag:", ":triangular_flag_on_post:"]
+        w1 = random.randrange(0, 6); w2 = random.randrange(0, 6); w3 = random.randrange(0, 6)
+        spin = [[w1, w2, w3], [(w1+1)%7, (w2+1)%7, (w3+1)%7], [(w1+2)%7, (w2+2)%7, (w3+2)%7]]
+        output = "| "
+        win = self.get_payout(spin[1], bet)
+        self.update_bal(message.author.id, win)
+        for w in spin:
+            for i in range(3):
+                output += wheel[w[i]] + " | "
+                if w[0] == spin[1][0] and i == 2:
+                    output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(int(win+bet), ",d"))
+            output += "\n| "
+        return output[:-3]
+
+    def get_payout(self, wheel, bet):
+        payout = [10, 77, 11, 0, 15, 20, 5]
+        winnings = bet
+        if wheel[0] == wheel[1] and wheel[1] == wheel[2]:
+            winnings *= payout[wheel[1]]
+        elif wheel[0] == wheel[1] or wheel[1] == wheel[2]:
+            winnings *= (payout[wheel[1]] * 0.1)
+        else:
+            return winnings * -1
+        winnings -= bet
+        return winnings
 
     def cmd_bet(self, message, *args):  # BET 44k BET ALL
         payout = self.check_input(message, args[0])
@@ -107,6 +135,3 @@ class Plugin(bot.ChatManager):
         self.update_bal(message.author.id, payout)
         return "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result,
                                                                      format(self.get_bal(message.author.id), ",d"))
-
-    def cmd_blackjack(self, *_):  # ???
-        pass
