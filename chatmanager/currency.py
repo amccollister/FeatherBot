@@ -9,7 +9,6 @@ class Plugin(bot.ChatManager):
     con = c = bot = None  # Defining connection and cursor for sql DB
     lottery = []
     server = None
-    # TODO lottery
 
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
@@ -23,7 +22,7 @@ class Plugin(bot.ChatManager):
     @asyncio.coroutine
     async def payout(self):  # SET TO ONLY PEOPLE ONLINE
         while True:
-            await asyncio.sleep(15)
+            await asyncio.sleep(60)
             self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 1000")
             self.con.commit()
             await self.bot.send_message(self.bot.get_channel("312852004999266304"), self.draw_lottery())
