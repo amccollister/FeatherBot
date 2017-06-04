@@ -1,5 +1,6 @@
 import discord
 import constants
+import urllib.request, json
 
 from discord.ext.commands import Bot
 from importlib import import_module
@@ -7,7 +8,7 @@ from importlib import import_module
 class ChatManager(Bot):
     command_list = []
     plugin_list = {}
-    # TODO wiki weather
+    #TODO command rights w/ configparser
 
     @staticmethod
     def get_general_commands():
@@ -120,3 +121,11 @@ class ChatManager(Bot):
             new_motd = " ".join(args[0])
             constants.MOTD = new_motd
             await self.send_message(message.channel, "**New MOTD set!**")
+
+    async def cmd_wiki(self, message, *args):
+        if not args[0]:
+            link = "https://en.wikipedia.org/wiki/Special:Random"
+        else:
+            link = "https://en.wikipedia.org/wiki/" + "_".join(args[0])
+        with urllib.request.urlopen(link) as response:
+            await self.send_message(message.channel, response.geturl())

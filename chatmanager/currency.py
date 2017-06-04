@@ -9,6 +9,7 @@ class Plugin(bot.ChatManager):
     con = c = bot = None  # Defining connection and cursor for sql DB
     lottery = []
     server = None
+    #TODO SET TO ONLY PEOPLE ONLINE AND LOTTO EVERY 10 MINS w/ COUNTDOWN
 
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
@@ -20,10 +21,10 @@ class Plugin(bot.ChatManager):
         asyncio.async(self.payout())
 
     @asyncio.coroutine
-    async def payout(self):  # SET TO ONLY PEOPLE ONLINE
+    async def payout(self):
         while True:
             await asyncio.sleep(60)
-            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 1000")
+            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 10")
             self.con.commit()
             await self.bot.send_message(self.bot.get_channel("312852004999266304"), self.draw_lottery())
 
@@ -46,7 +47,7 @@ class Plugin(bot.ChatManager):
             self.c.execute("INSERT OR IGNORE INTO CURRENCY (ID, BALANCE) VALUES ({id}, 0)".format(id=m.id))
             self.con.commit()
         self.c.execute("SELECT * FROM CURRENCY")
-        print(self.c.fetchall())
+        #print(self.c.fetchall())
 
     def get_bal(self, user_id):
         self.c.execute("SELECT * FROM CURRENCY WHERE ID = {id}".format(id=user_id))

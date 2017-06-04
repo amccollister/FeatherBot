@@ -1,16 +1,19 @@
 import random
+import string
+import urllib.request
+
 from chatmanager import bot
 
 class Plugin(bot.ChatManager):
     def __init__(self, *_):
         pass
-    # TODO: Fact rngImage randomWiki strawpoll joke Cleverbot
+    # TODO: Fact strawpoll joke Cleverbot
 
     def cmd_coolest(self, message, *_):
         return "{0} is the coolest!".format(self.get_name(message))
 
-    def cmd_choose(self, *choice):
-        return "I choose \"{0}\" this time.".format(random.choice(choice[1]))
+    def cmd_choose(self, _, *choice):
+        return "I choose \"{0}\" this time.".format(random.choice(choice))
 
     def cmd_rps(self, message, *throw):
         choices = ["rock", "paper", "scissors"]
@@ -69,3 +72,18 @@ class Plugin(bot.ChatManager):
                                                                            roll_total, " + ".join(str(r)for r in rolls))
         except:
             return "Please roll again. The dice landed on the floor. :("
+
+    def cmd_imgur(self, *_):
+        prefix = "https://i.imgur.com/"
+        chars = string.ascii_letters + string.digits
+        attempts = 1
+        while True:
+            suffix = (random.choice(chars) for x in range(random.choice([5, 7])))
+            link = prefix + "".join(suffix)
+            try:
+                with urllib.request.urlopen(link) as response:
+                    if response.getcode() == 200:
+                        return "Found {0} after **{1}** attempts.".format(link, attempts)
+            except Exception as e:
+                attempts += 1
+                continue
