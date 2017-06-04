@@ -9,6 +9,7 @@ class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
     reminders = [] # reminder list
     bot = None
+    #TODO reminders & remindme inputs
 
     def __init__(self, client):
         self.con = sql.connect("db/reminders.sqlite")
@@ -29,3 +30,6 @@ class Plugin(bot.ChatManager):
     def cmd_remindme(self, message, *args):
         self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
         return "It worked! You'll get a reminder in 5 seconds"
+
+    def cmd_reminders(self, message, *args):
+        pass

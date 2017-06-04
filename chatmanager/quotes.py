@@ -5,6 +5,7 @@ from chatmanager import bot
 
 class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
+    #TODO redoquote
 
     def __init__(self, *_):
         self.con = sql.connect("db/quotes.sqlite", isolation_level=None)

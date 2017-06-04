@@ -95,3 +95,4 @@ quotes.txt
 *.iml
 *.sqlite
 *.sqlite-journal
+start.bat
