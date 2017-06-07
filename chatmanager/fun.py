@@ -7,7 +7,6 @@ from chatmanager import bot
 class Plugin(bot.ChatManager):
     def __init__(self, *_):
         pass
-    # TODO: Fact strawpoll joke Cleverbot
 
     def cmd_coolest(self, message, *_):
         return "{0} is the coolest!".format(self.get_name(message))
@@ -87,3 +86,11 @@ class Plugin(bot.ChatManager):
             except Exception as e:
                 attempts += 1
                 continue
+
+    def cmd_fact(self, *_):
+        with urllib.request.urlopen("https://www.reddit.com/r/funfacts/random") as response:
+            return response.geturl()
+
+    def cmd_joke(self, *_):
+        with urllib.request.urlopen("https://www.reddit.com/r/jokes/random") as response:
+            return response.geturl()
