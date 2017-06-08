@@ -1,6 +1,6 @@
 import discord
 import constants
-import urllib.request, json
+import urllib.request
 
 from discord.ext.commands import Bot
 from importlib import import_module

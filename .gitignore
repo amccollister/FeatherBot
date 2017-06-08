@@ -96,3 +96,5 @@ quotes.txt
 *.sqlite
 *.sqlite-journal
 start.bat
+config/config.ini
+config/permissions.ini
