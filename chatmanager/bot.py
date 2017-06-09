@@ -1,6 +1,7 @@
 import discord
 import constants
 import urllib.request
+import configparser
 
 from discord.ext.commands import Bot
 from importlib import import_module
@@ -30,7 +31,7 @@ class ChatManager(Bot):
         for app in constants.PLUGINS:
             print("Found plugin:", app)
             _plugin = import_module("chatmanager." + app)
-            plugin = _plugin.Plugin(self)#list(self.servers)[0])  # create plugin objects
+            plugin = _plugin.Plugin(self)
             self.plugin_list[app] = plugin
 
     def get_name(self, message):
@@ -39,30 +40,29 @@ class ChatManager(Bot):
             name = message.author.name
         return name
 
-    def __init__(self, command_prefix, whitelist):
+    def __init__(self, command_prefix):
         super().__init__(command_prefix)
-        self.whitelist = whitelist
         self.command_list = self.get_general_commands()
+        self.cfg = configparser.ConfigParser().read("config/config.ini")
 
     async def incoming_message(self, message : discord.Message):  # check plugin commands then reject
-        if message.content.startswith(self.command_prefix) and message.channel.id == self.whitelist:
-                args = message.content.split(" ")
-                arg = args.pop(0)[1:].lower()
-                if "cmd_" + arg in self.command_list:    # check general commands
-                    await getattr(self, "cmd_" + arg)(message, args)
-                else:
-                    for p in self.plugin_list.values():  # check plugin commands if it's not found in general
-                        lst = p.get_plugin_list(p, self.command_list)
-                        if "cmd_" + arg in lst:
-                            #add checker for coroutine.... wait no you don't dum dum. adjust this later
-                            returned = getattr(p, "cmd_" + arg)(message, args)
-                            if type(returned) is str:
-                                await self.send_message(message.channel, self.discord_limit(returned))
-                            break      # Once the cmd is found, break to avoid the else statement
-                    else:          # If all else fails, tell them this isn't a command
-                        await self.send_message(message.channel, "```That's not a command!"
-                                                                 "\nPlease use {0}help for a list of commands.```"
-                                                                 .format(self.command_prefix))
+        args = message.content.split(" ")
+        arg = args.pop(0)[1:].lower()
+        if "cmd_" + arg in self.command_list:    # check general commands
+            await getattr(self, "cmd_" + arg)(message, args)
+        else:
+            for p in self.plugin_list.values():  # check plugin commands if it's not found in general
+                lst = p.get_plugin_list(p, self.command_list)
+                if "cmd_" + arg in lst:
+                    #add checker for coroutine.... wait no you don't dum dum. adjust this later
+                    returned = getattr(p, "cmd_" + arg)(message, args)
+                    if type(returned) is str:
+                        await self.send_message(message.channel, self.discord_limit(returned))
+                        break      # Once the cmd is found, break to avoid the else statement
+            else:          # If all else fails, tell them this isn't a command
+                await self.send_message(message.channel, "```That's not a command!"
+                                                         "\nPlease use {0}help for a list of commands.```"
+                                                         .format(self.command_prefix))
 
     async def cmd_help(self, message, *args):   # ADD HELP FOR COMMANDS AND ADD """AT THE BEGINNING""" __DOC__
         if not args[0] or args[0][0] not in self.plugin_list.keys():
@@ -122,10 +122,4 @@ class ChatManager(Bot):
             constants.MOTD = new_motd
             await self.send_message(message.channel, "**New MOTD set!**")
 
-    async def cmd_wiki(self, message, *args):
-        if not args[0]:
-            link = "https://en.wikipedia.org/wiki/Special:Random"
-        else:
-            link = "https://en.wikipedia.org/wiki/" + "_".join(args[0])
-        with urllib.request.urlopen(link) as response:
-            await self.send_message(message.channel, response.geturl())
+

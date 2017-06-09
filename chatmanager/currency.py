@@ -10,6 +10,7 @@ class Plugin(bot.ChatManager):
     lottery = []
     server = None
     #TODO SET TO ONLY PEOPLE ONLINE AND LOTTO EVERY 10 MINS w/ COUNTDOWN
+    # HORSE RACE???
 
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
@@ -21,12 +22,12 @@ class Plugin(bot.ChatManager):
         asyncio.async(self.payout())
 
     @asyncio.coroutine
-    async def payout(self):
+    async def payout(self): # lottery draw time etc
         while True:
-            await asyncio.sleep(60)
-            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + 10")
+            await asyncio.sleep(constants.DRAW_TIME)
+            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {money}").format(money=constants.PAYCHECK)
             self.con.commit()
-            await self.bot.send_message(self.bot.get_channel("312852004999266304"), self.draw_lottery())
+            await self.bot.send_message(self.bot.get_channel(constants.LOTTERY_CHANNEL), self.draw_lottery())
 
     def draw_lottery(self):
         if not self.lottery:
@@ -135,12 +136,12 @@ class Plugin(bot.ChatManager):
         return output[:-3]
 
     def get_payout(self, wheel, bet):
-        payout = [10, 77, 11, 0, 15, 20, 5]
+        payout = constants.SLOTS_PAYOUT
         winnings = bet
         if wheel[0] == wheel[1] and wheel[1] == wheel[2]:
             winnings *= payout[wheel[1]]
         elif wheel[0] == wheel[1] or wheel[1] == wheel[2]:
-            winnings *= (payout[wheel[1]] * 0.1)
+            winnings *= (float(payout[wheel[1]]) * 0.1)
         else:
             return winnings * -1
         winnings -= bet

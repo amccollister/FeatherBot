@@ -89,7 +89,6 @@ ENV/
 .ropeproject
 
 # Files I want to stay hidden
-constants.py
 quotes.txt
 *.xml
 *.iml

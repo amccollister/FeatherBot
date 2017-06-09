@@ -94,3 +94,11 @@ class Plugin(bot.ChatManager):
     def cmd_joke(self, *_):
         with urllib.request.urlopen("https://www.reddit.com/r/jokes/random") as response:
             return response.geturl()
+
+    def cmd_wiki(self, message, *args):
+        if not args[0]:
+            link = "https://en.wikipedia.org/wiki/Special:Random"
+        else:
+            link = "https://en.wikipedia.org/wiki/" + "_".join(args[0])
+        with urllib.request.urlopen(link) as response:
+            return response.geturl()
