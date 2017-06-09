@@ -18,15 +18,21 @@ class Plugin(bot.ChatManager):
         self.c.execute("CREATE TABLE IF NOT EXISTS CURRENCY (ID INTEGER PRIMARY KEY, BALANCE INTEGER)")
         self.con.commit()
         self.bot = client
-        self.add_users(self.bot.get_all_members())
         asyncio.async(self.payout())
+        asyncio.async(self.lottery_draw())
 
     @asyncio.coroutine
-    async def payout(self): # lottery draw time etc
+    async def payout(self):
         while True:
-            await asyncio.sleep(constants.DRAW_TIME)
+            await asyncio.sleep(constants.PAY_TIME)
+            self.add_users(self.bot.get_all_members())
             self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {money}").format(money=constants.PAYCHECK)
             self.con.commit()
+
+    @asyncio.coroutine
+    async def lottery_draw(self):
+        while True:
+            await asyncio.sleep(constants.DRAW_TIME)
             await self.bot.send_message(self.bot.get_channel(constants.LOTTERY_CHANNEL), self.draw_lottery())
 
     def draw_lottery(self):

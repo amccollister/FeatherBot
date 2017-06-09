@@ -20,7 +20,7 @@ def main():
         if message.author.id != feather_bot.user.id and \
            message.content.startswith(feather_bot.command_prefix) and \
           (message.channel.id in constants.WHITELIST or
-          (not constants.WHITELIST and message.channel.id not in constants.BLACKLIST)):
+          (constants.WHITELIST == [""] and message.channel.id not in constants.BLACKLIST)):
             await feather_bot.incoming_message(message)
 
     feather_bot.run(constants.BOT_TOKEN)

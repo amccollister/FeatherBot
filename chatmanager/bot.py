@@ -121,5 +121,3 @@ class ChatManager(Bot):
             new_motd = " ".join(args[0])
             constants.MOTD = new_motd
             await self.send_message(message.channel, "**New MOTD set!**")
-
-

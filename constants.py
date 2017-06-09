@@ -16,8 +16,8 @@ BLACKLIST = chat["RestrictFromChannels"].split(" ")
 
 # CURRENCY CONFIGS
 LOTTERY_CHANNEL = currency["LotteryChannel"]
-LOTTERY_PRICE = currency["TicketPrice"]
-PAYCHECK = currency["Payout"]
-PAY_TIME = currency["PayoutTime"]
-DRAW_TIME = currency["LotteryDrawTime"]
+LOTTERY_PRICE = int(currency["TicketPrice"])
+PAYCHECK = int(currency["Payout"])
+PAY_TIME = int(currency["PayoutTime"])
+DRAW_TIME = int(currency["LotteryDrawTime"])
 SLOTS_PAYOUT = currency["SlotsPayout"].split(" ")
