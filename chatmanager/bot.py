@@ -100,13 +100,14 @@ class ChatManager(Bot):
         await self.send_message(message.channel, "{0} joined {1} on {2}!".format(self.get_name(message), server, date))
 
     async def cmd_online(self, message, *_):
-        users = message.server.members
+        users = message.server.members # self.get_all_members()
         members = []
         online_count = 0
         for u in users:
             if str(u.status) != "offline":
                 online_count += 1
-                members.append(u.name)
+                name = u.nick and u.nick or u.name
+                members.append(name)
         online = "There are **{0}** users online.```".format(online_count)
         online += ", ".join(members) + "```"
         await self.send_message(message.channel, online)

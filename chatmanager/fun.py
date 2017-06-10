@@ -4,6 +4,8 @@ import urllib.request
 
 from chatmanager import bot
 
+# TODO youtube
+
 class Plugin(bot.ChatManager):
     def __init__(self, *_):
         pass

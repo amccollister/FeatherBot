@@ -3,13 +3,15 @@ import random
 import asyncio
 import constants
 
+from time import strptime
+from datetime import timedelta
+from datetime import datetime
 from chatmanager import bot
 
 class Plugin(bot.ChatManager):
     con = c = bot = None  # Defining connection and cursor for sql DB
     lottery = []
     server = None
-    #TODO SET TO ONLY PEOPLE ONLINE AND LOTTO EVERY 10 MINS w/ COUNTDOWN
     # HORSE RACE???
 
     def __init__(self, client):
@@ -18,6 +20,7 @@ class Plugin(bot.ChatManager):
         self.c.execute("CREATE TABLE IF NOT EXISTS CURRENCY (ID INTEGER PRIMARY KEY, BALANCE INTEGER)")
         self.con.commit()
         self.bot = client
+        self.next_draw = datetime.now() + timedelta(seconds=constants.DRAW_TIME)
         asyncio.async(self.payout())
         asyncio.async(self.lottery_draw())
 
@@ -26,35 +29,39 @@ class Plugin(bot.ChatManager):
         while True:
             await asyncio.sleep(constants.PAY_TIME)
             self.add_users(self.bot.get_all_members())
-            self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {money}").format(money=constants.PAYCHECK)
+            for u in self.bot.get_all_members():
+                if str(u.status) != "offline":
+                    self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {money} WHERE ID = {id}"
+                                   .format(money=constants.PAYCHECK, id=u.id))
             self.con.commit()
 
     @asyncio.coroutine
     async def lottery_draw(self):
         while True:
             await asyncio.sleep(constants.DRAW_TIME)
+            self.next_draw = datetime.now() + timedelta(seconds=constants.DRAW_TIME)
             await self.bot.send_message(self.bot.get_channel(constants.LOTTERY_CHANNEL), self.draw_lottery())
 
     def draw_lottery(self):
         if not self.lottery:
             return "__**LOTTERY**__\nNobody bought any tickets."
         user_id = random.choice(self.lottery)
-        payout = len(self.lottery) * constants.LOTTERY_PRICE
+        payout = int(len(self.lottery) * constants.LOTTERY_PRICE * .9)
         tickets = 0
+        total = len(self.lottery)
         for ticket in self.lottery:
             if ticket == user_id:
                 tickets += 1
         self.lottery = []
         self.update_bal(user_id, payout)
         return "__**LOTTERY**__\nCONGRATULATIONS to <@{0}> on winning __**{1}**__ " \
-               "points with {2} tickets.".format(user_id, format(payout, ",d"), tickets)
+               "points with {2} tickets.\n The pot held {3} tickets!".format(user_id, format(payout, ",d"), tickets, total)
 
     def add_users(self, mem_list):
         for m in mem_list:
             self.c.execute("INSERT OR IGNORE INTO CURRENCY (ID, BALANCE) VALUES ({id}, 0)".format(id=m.id))
             self.con.commit()
         self.c.execute("SELECT * FROM CURRENCY")
-        #print(self.c.fetchall())
 
     def get_bal(self, user_id):
         self.c.execute("SELECT * FROM CURRENCY WHERE ID = {id}".format(id=user_id))
@@ -75,9 +82,6 @@ class Plugin(bot.ChatManager):
         except:
             return "You didn't place an offer!"
         return input
-
-    def cmd_moneyping(self, *_):
-        return "$$$ pong"
 
     def cmd_bal(self, message, *_):
         return self.cmd_balance(message)
@@ -109,7 +113,12 @@ class Plugin(bot.ChatManager):
         return "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",.0f"), user_id)
 
     def cmd_lottery(self, *_):
-        return "__**LOTTERY**__\nThe jackpot sits at __**{:,d}**__ points.".format(len(self.lottery)*constants.LOTTERY_PRICE)
+        time = self.next_draw - datetime.now()
+        minutes = int(time.total_seconds()/60)
+        seconds = int(time.total_seconds()%60)
+        time_remaining = "{0}min {1}sec".format(minutes, seconds)
+        return "__**LOTTERY**__\nThe jackpot sits at __**{:,d}**__ points.\n" \
+               "Draw in {}!".format(int(len(self.lottery)*constants.LOTTERY_PRICE*.9), time_remaining)
 
     def cmd_leaderboard(self, *_):
         self.c.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
