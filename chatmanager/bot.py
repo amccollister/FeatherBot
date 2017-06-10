@@ -54,7 +54,7 @@ class ChatManager(Bot):
             for p in self.plugin_list.values():  # check plugin commands if it's not found in general
                 lst = p.get_plugin_list(p, self.command_list)
                 if "cmd_" + arg in lst:
-                    #add checker for coroutine.... wait no you don't dum dum. adjust this later
+                    #add checker for coroutine.... wait no you don't dum dum. adjust this later maybe for rankup?
                     returned = getattr(p, "cmd_" + arg)(message, args)
                     if type(returned) is str:
                         await self.send_message(message.channel, self.discord_limit(returned))

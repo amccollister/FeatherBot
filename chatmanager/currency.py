@@ -3,7 +3,6 @@ import random
 import asyncio
 import constants
 
-from time import strptime
 from datetime import timedelta
 from datetime import datetime
 from chatmanager import bot
@@ -175,3 +174,11 @@ class Plugin(bot.ChatManager):
         self.update_bal(message.author.id, payout)
         return "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result,
                                                                      format(self.get_bal(message.author.id), ",d"))
+
+    def rankup(self, message, *_): #has to be awaited.... fit this in somewhere???
+        role = None
+        for r in message.server.roles:
+            if r.id == "321589674147708928":
+                role = r
+        self.add_roles(message.author, role)
+        print("Done")
