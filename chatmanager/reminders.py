@@ -1,6 +1,7 @@
 import sqlite3 as sql
-import random
 import asyncio
+import parsedatetime.parsedatetime as pdt
+
 from datetime import timedelta
 from datetime import datetime
 from chatmanager import bot
@@ -9,7 +10,7 @@ class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
     reminders = [] # reminder list
     bot = None
-    #TODO reminders & remindme inputs
+    #TODO reminders & remindme inputs undoreminder and removereminder
 
     def __init__(self, client):
         self.con = sql.connect("db/reminders.sqlite")
@@ -27,9 +28,26 @@ class Plugin(bot.ChatManager):
                 self.reminders.pop()
             await asyncio.sleep(1)
 
-    def cmd_remindme(self, message, *args):
-        self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
-        return "It worked! You'll get a reminder in 5 seconds"
+    async def cmd_remindme(self, message, *args):
+        """
+        Usage:
+                !remindme [time] [message]
 
-    def cmd_reminders(self, message, *args):
-        pass
+        Gives you a reminder some time in the future.
+        """
+        # Learned all this here ---> https://github.com/SIlver--/remindmebot-reddit
+
+        cal = pdt.Calendar()
+        self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
+        await self.bot.send_msg(message.channel, "It worked! You'll get a reminder in 5 seconds")
+
+    async def cmd_checkreminders(self, message, *args):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
+        self.c.execute("SELECT * FROM REMINDERS WHERE ID = {id}".format(id=message.author.id))
+        self.con.commit()
+        reminders = self.c.fetchall()

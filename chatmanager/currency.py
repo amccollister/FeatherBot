@@ -11,7 +11,7 @@ class Plugin(bot.ChatManager):
     con = c = bot = None  # Defining connection and cursor for sql DB
     lottery = []
     server = None
-    # HORSE RACE???
+    #TODO HORSE RACE???
 
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
@@ -28,10 +28,13 @@ class Plugin(bot.ChatManager):
         while True:
             await asyncio.sleep(constants.PAY_TIME)
             self.add_users(self.bot.get_all_members())
+            online_users = []
             for u in self.bot.get_all_members():
                 if str(u.status) != "offline":
-                    self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {money} WHERE ID = {id}"
-                                   .format(money=constants.PAYCHECK, id=u.id))
+                    online_users.append([constants.PAYCHECK, u.id])
+            self.c.execute("BEGIN TRANSACTION")
+            self.c.executemany("UPDATE CURRENCY SET BALANCE = BALANCE + ? WHERE ID = ?", online_users)
+            self.c.execute("COMMIT")
             self.con.commit()
 
     @asyncio.coroutine
@@ -64,6 +67,7 @@ class Plugin(bot.ChatManager):
 
     def get_bal(self, user_id):
         self.c.execute("SELECT * FROM CURRENCY WHERE ID = {id}".format(id=user_id))
+        self.con.commit()
         return int(self.c.fetchone()[1])
 
     def update_bal(self, user_id, bal):
@@ -82,44 +86,80 @@ class Plugin(bot.ChatManager):
             return "You didn't place an offer!"
         return input
 
-    def cmd_bal(self, message, *_):
-        return self.cmd_balance(message)
+    async def cmd_bal(self, message, *_):
+        """
+        Usage:
+                !command [params]
 
-    def cmd_balance(self, message, *_):
+        This describes what the command does.
+        """
+        await self.cmd_balance(message)
+
+    async def cmd_balance(self, message, *_):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
         bal = self.get_bal(message.author.id)
-        return "Hello, <@{0}>! You currently have __**{1}**__ points.".format(message.author.id, format(bal, ",d"))
+        await self.bot.send_msg(message.channel, "Hello, <@{0}>! You currently have __**{1}**__ points.".format(message.author.id, format(bal, ",d")))
 
-    def cmd_buy(self, message, *args):
+    async def cmd_buy(self, message, *args):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
         tickets = self.check_input(message, args[0])
-        if type(tickets) is str:  return tickets
+        if type(tickets) is str:  await self.bot.send_msg(message.channel,  tickets)
         cost = tickets * constants.LOTTERY_PRICE
-        if cost > self.get_bal(message.author.id): return "You can't afford that many tickets!"
+        if cost > self.get_bal(message.author.id): await self.bot.send_msg(message.channel, "You can't afford that many tickets!")
         for i in range(tickets):
             self.lottery.append(message.author.id)
         self.update_bal(message.author.id, cost * -1)
-        return "__**LOTTERY**__\n<@{0}> just purchased {1} tickets!".format(message.author.id, tickets)
+        await self.bot.send_msg(message.channel, "__**LOTTERY**__\n<@{0}> just purchased {1} tickets!".format(message.author.id, tickets))
 
-    def cmd_give(self, message, *args):
+    async def cmd_give(self, message, *args):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
         try:
             user_id = int(args[0][1].lstrip("<!@").rstrip(">"))
         except:
-            return "You gave nothing to no one. Charitable! (I could not find that user)"
+            await self.bot.send_msg(message.channel, "You gave nothing to no one. Charitable! (I could not find that user)")
         money = self.check_input(message, args[0])
         if type(money) is str:
-            return money
+            await self.bot.send_msg(message.channel, money)
         self.update_bal(user_id, money)
         self.update_bal(message.author.id, money * -1)
-        return "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",.0f"), user_id)
+        await self.bot.send_msg(message.channel, "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",.0f"), user_id))
 
-    def cmd_lottery(self, *_):
+    async def cmd_lottery(self, message, *_):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
         time = self.next_draw - datetime.now()
         minutes = int(time.total_seconds()/60)
         seconds = int(time.total_seconds()%60)
         time_remaining = "{0}min {1}sec".format(minutes, seconds)
-        return "__**LOTTERY**__\nThe jackpot sits at __**{:,d}**__ points.\n" \
-               "Draw in {}!".format(int(len(self.lottery)*constants.LOTTERY_PRICE*.9), time_remaining)
+        await self.bot.send_msg(message.channel, "__**LOTTERY**__\nThe jackpot sits at __**{:,d}**__ points.\n" \
+               "Draw in {}!".format(int(len(self.lottery)*constants.LOTTERY_PRICE*.9), time_remaining))
 
-    def cmd_leaderboard(self, *_):
+    async def cmd_leaderboard(self, message, *_):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
         self.c.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
         leaders = self.c.fetchall()
         output = "__**LEADERBOARD**__```"
@@ -128,57 +168,74 @@ class Plugin(bot.ChatManager):
             name = member.nick
             if not name:  name = member.name
             output += "{0}\t\t{1}\n".format(name, format(l[1], ",.0f"))
-        return output + "```"
+            await self.bot.send_msg(message.channel, output + "```")
 
-    def cmd_slots(self, message, *args):
-        bet = self.check_input(message, args[0])
-        if type(bet) is str:
-            return bet
+    async def cmd_slots(self, message, *args):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
+        pay = self.check_input(message, args[0])
+        if type(pay) is str:
+            await self.bot.send_msg(message.channel, pay)
         wheel = [":white_check_mark:", ":seven:", ":bell:", ":no_entry_sign:",
                  ":large_blue_diamond:", ":moneybag:", ":triangular_flag_on_post:"]
         w1 = random.randrange(0, 6); w2 = random.randrange(0, 6); w3 = random.randrange(0, 6)
         spin = [[w1, w2, w3], [(w1+1)%7, (w2+1)%7, (w3+1)%7], [(w1+2)%7, (w2+2)%7, (w3+2)%7]]
         output = "| "
-        win = self.get_payout(spin[1], bet)
+        win = self.get_payout(spin[1], pay)
         self.update_bal(message.author.id, win)
         for w in spin:
             for i in range(3):
                 output += wheel[w[i]] + " | "
                 if w[0] == spin[1][0] and i == 2:
-                    output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(int(win+bet), ",d"))
+                    output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(int(win+pay), ",d"))
             output += "\n| "
-        return output[:-3]
+            await self.bot.send_msg(message.channel, output[:-3])
 
     def get_payout(self, wheel, bet):
-        payout = constants.SLOTS_PAYOUT
+        pay = constants.SLOTS_PAYOUT
         winnings = bet
         if wheel[0] == wheel[1] and wheel[1] == wheel[2]:
-            winnings *= payout[wheel[1]]
+            winnings *= pay[wheel[1]]
         elif wheel[0] == wheel[1] or wheel[1] == wheel[2]:
-            winnings *= (float(payout[wheel[1]]) * 0.1)
+            winnings *= (float(pay[wheel[1]]) * 0.1)
         else:
             return winnings * -1
         winnings -= bet
         return winnings
 
-    def cmd_bet(self, message, *args):  # BET 44k BET ALL
-        payout = self.check_input(message, args[0])
-        if type(payout) is str:
-            return payout
+    async def cmd_bet(self, message, *args):  # BET 44k BET ALL
+        """
+        Usage:
+                !bet [ALL | 1K/1M/1B/1T | <number>]
+
+        This describes what the command does.
+        """
+        pay = self.check_input(message, args[0])
+        if type(pay) is str:
+            await self.bot.send_msg(message.channel, pay)
         call = random.choice(["heads", "tails"])
         land = random.choice(["heads", "tails"])
         result = "WON"
         if call != land:
-            payout *= -1
+            pay *= -1
             result = "LOST"
-        self.update_bal(message.author.id, payout)
-        return "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result,
-                                                                     format(self.get_bal(message.author.id), ",d"))
+        self.update_bal(message.author.id, pay)
+        await self.bot.send_msg(message.channel, "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result, format(self.get_bal(message.author.id), ",d")))
 
-    def rankup(self, message, *_): #has to be awaited.... fit this in somewhere???
+    async def cmd_rankup(self, message, *_): #has to be awaited.... fit this in somewhere???
+        """
+        Usage:
+                !rankup [params]
+
+        This describes what the command does.
+        """
         role = None
         for r in message.server.roles:
             if r.id == "321589674147708928":
                 role = r
-        self.add_roles(message.author, role)
-        print("Done")
+        await self.bot.add_roles(message.author, role)
+        await self.bot.send_msg(message.channel, "Done!")
