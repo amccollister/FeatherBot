@@ -89,10 +89,11 @@ ENV/
 .ropeproject
 
 # Files I want to stay hidden
-constants.py
 quotes.txt
 *.xml
 *.iml
 *.sqlite
 *.sqlite-journal
 start.bat
+config/config.ini
+config/permissions.ini

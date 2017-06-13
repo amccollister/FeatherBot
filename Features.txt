@@ -1,8 +1,0 @@
-FeatherBot Features
-----------------------
-Quotes
-Reminder
-8Ball
-Currency/Lottery
-Cleverbot?
-Random fact?
