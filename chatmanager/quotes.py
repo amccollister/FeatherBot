@@ -94,6 +94,15 @@ class Plugin(bot.ChatManager):
         except:
             await self.bot.send_msg(message.channel, "There's no quote to undo!")
 
+    async def cmd_redoquote(self, message, *args):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
+        pass
+
     async def cmd_removequote(self, message, *args):
         """
         Usage:

@@ -47,12 +47,15 @@ class ChatManager(Bot):
                 return [p, "cmd_" + arg]
         return None
 
+    def check_rights(self, message, arg):
+        pass
+
     def __init__(self, command_prefix):
         super().__init__(command_prefix)
         self.command_list = self.get_general_commands()
         self.cfg = configparser.ConfigParser().read("config/config.ini")
 
-    async def incoming_message(self, message):
+    async def incoming_message(self, message): # TODO check_rights()
         args = message.content.split(" ")
         arg = args.pop(0)[1:].lower() # get the command the user just sent and remove the !
         if "cmd_" + arg in self.command_list:    # check general commands
@@ -181,3 +184,24 @@ class ChatManager(Bot):
             new_motd = " ".join(args[0])
             constants.MOTD = new_motd
             await self.send_msg(message.channel, "**New MOTD set!**")
+
+    async def cmd_disconnect(self, message, *args):
+        """
+        Usage:
+                !disconnect
+
+        Forces the bot to disconnect.
+        """
+        await self.send_msg(message.channel, "Shutting down...")
+        await self.close()
+
+    async def cmd_restart(self, message, *args):
+        """
+        Usage:
+                !restart
+
+        Forces the bot to disconnect, then reconnect.
+        """
+        await self.send_msg(message.channel, "I'll be back...")
+        # Figure out how to restart bot
+        pass

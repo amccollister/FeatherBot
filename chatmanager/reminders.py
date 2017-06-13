@@ -10,7 +10,7 @@ class Plugin(bot.ChatManager):
     con = c = None  # Defining connection and cursor for sql DB
     reminders = [] # reminder list
     bot = None
-    #TODO reminders & remindme inputs undoreminder and removereminder
+    #TODO reminders & remindme inputs
 
     def __init__(self, client):
         self.con = sql.connect("db/reminders.sqlite")
@@ -51,3 +51,21 @@ class Plugin(bot.ChatManager):
         self.c.execute("SELECT * FROM REMINDERS WHERE ID = {id}".format(id=message.author.id))
         self.con.commit()
         reminders = self.c.fetchall()
+
+    async def cmd_undoreminder(self, message, *args):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
+        pass
+
+    async def cmd_removereminder(self, message, *args):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
+        pass

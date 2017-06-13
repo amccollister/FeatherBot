@@ -4,7 +4,6 @@ import urllib.request
 
 from chatmanager import bot
 
-# TODO youtube
 
 class Plugin(bot.ChatManager):
     def __init__(self, bot):
@@ -141,6 +140,15 @@ class Plugin(bot.ChatManager):
             except Exception as e:
                 attempts += 1
                 continue
+
+    async def cmd_youtube(self, message, *_):
+        """
+        Usage:
+                !command [params]
+
+        This describes what the command does.
+        """
+        pass
 
     async def cmd_fact(self, message, *_):
         """
