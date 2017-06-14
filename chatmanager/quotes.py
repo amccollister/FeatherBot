@@ -4,16 +4,15 @@ import random
 from datetime import datetime
 from chatmanager import bot
 
-class Plugin(bot.ChatManager):
-    con = c = None  # Defining connection and cursor for sql DB
-    #TODO redoquote
 
+class Plugin(bot.ChatManager):
     def __init__(self, bot, *_):
         self.con = sql.connect("db/quotes.sqlite", isolation_level=None)
         self.c = self.con.cursor()
         self.c.execute("CREATE TABLE IF NOT EXISTS QUOTES (NAME TEXT, QUOTE TEXT, DATE TEXT)")
         self.con.commit()
         self.bot = bot
+        self.undone_quote = None
 
     @staticmethod
     def print_quote(quote):
@@ -39,9 +38,11 @@ class Plugin(bot.ChatManager):
     async def cmd_addquote(self, message, *args):
         """
         Usage:
-                !command [params]
+                !addquote <name> <quote> [date]
 
-        This describes what the command does.
+        Adds a quote to the database for future reminiscence. 
+        Requires the name and quote in order to be stored. 
+        The date may be added using the following format: YYYY-MM-DD
         """
         if not args[0]:
             await self.bot.send_msg(message.channel, "You didn't add a quote.")
@@ -64,9 +65,10 @@ class Plugin(bot.ChatManager):
     async def cmd_quote(self, message, *args): # fix detecting empty db
         """
         Usage:
-                !command [params]
+                !quote [id]
 
-        This describes what the command does.
+        Grabs a quote from the database with the specified ID.
+        If no ID is provided, a random quote will be displayed.
         """
         if not args[0]:
             self.c.execute("SELECT ROWID, * FROM QUOTES")
@@ -82,33 +84,41 @@ class Plugin(bot.ChatManager):
     async def cmd_undoquote(self, message, *args):
         """
         Usage:
-                !command [params]
+                !undoquote
 
-        This describes what the command does.
+        Removes the latest quote added for when someone makes a typo.
         """
         self.c.execute("SELECT last_insert_rowid();")
         id = self.c.fetchone()[0]
         try:
-            del_quote = self.remove_quote(id)
-            await self.bot.send_msg(message.channel, "{0} **removed** {1}".format(self.get_name(message), self.print_quote(del_quote)))
+            if id == 0: raise Exception
+            self.undone_quote = self.remove_quote(id)
+            await self.bot.send_msg(message.channel, "{0} **removed** {1}".format(self.get_name(message), self.print_quote(self.undone_quote)))
         except:
             await self.bot.send_msg(message.channel, "There's no quote to undo!")
 
-    async def cmd_redoquote(self, message, *args):
+    async def cmd_redoquote(self, message, *_):
         """
         Usage:
-                !command [params]
+                !redoquote
 
-        This describes what the command does.
+        Adds the latest quote that was deleted. 
+        Useful for when you want to undo the undo or accidentally delete the wrong ID.
         """
+        if self.undone_quote is None:
+            await self.bot.send_msg(message.channel, "No quotes have been undone recently.")
+        else:
+            quote = " ".join(self.undone_quote[1:]).rstrip(" ").split(" ")  # Remove spaces if no date in quote
+            await self.cmd_addquote(message, quote)
         pass
 
     async def cmd_removequote(self, message, *args):
         """
         Usage:
-                !command [params]
+                !removequote <id>
 
-        This describes what the command does.
+        Removes the quote with the specified ID.
+        If no ID is specified, no quotes will be deleted because deleting random quotes would be silly.
         """
         try:
             del_quote = self.remove_quote(int(args[0][0]))

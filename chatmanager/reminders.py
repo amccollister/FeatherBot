@@ -6,11 +6,11 @@ from datetime import timedelta
 from datetime import datetime
 from chatmanager import bot
 
+# TODO reminders & remindme inputs
+
+
 class Plugin(bot.ChatManager):
-    con = c = None  # Defining connection and cursor for sql DB
-    reminders = [] # reminder list
-    bot = None
-    #TODO reminders & remindme inputs
+    reminders = []
 
     def __init__(self, client):
         self.con = sql.connect("db/reminders.sqlite")
@@ -35,7 +35,7 @@ class Plugin(bot.ChatManager):
 
         Gives you a reminder some time in the future.
         """
-        # Learned all this here ---> https://github.com/SIlver--/remindmebot-reddit
+        # Basically a copy of https://github.com/SIlver--/remindmebot-reddit
 
         cal = pdt.Calendar()
         self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
@@ -44,9 +44,9 @@ class Plugin(bot.ChatManager):
     async def cmd_checkreminders(self, message, *args):
         """
         Usage:
-                !command [params]
+                !checkreminders
 
-        This describes what the command does.
+        Displays a list of all your reminders.
         """
         self.c.execute("SELECT * FROM REMINDERS WHERE ID = {id}".format(id=message.author.id))
         self.con.commit()
@@ -55,17 +55,23 @@ class Plugin(bot.ChatManager):
     async def cmd_undoreminder(self, message, *args):
         """
         Usage:
-                !command [params]
+                !undoreminder
 
-        This describes what the command does.
+        Removes the latest reminder you added.
         """
+        self.c.execute("SELECT * FROM REMINDERS WHERE ID = {id} ORDER BY ID DESC".format(id=message.author.id))
+        self.con.commit()
+        reminder = self.c.fetchone()
         pass
 
     async def cmd_removereminder(self, message, *args):
         """
         Usage:
-                !command [params]
+                !removereminder <id>
 
-        This describes what the command does.
+        Removes one of your reminders.
         """
+        r_id = None
+        self.c.execute("DELETE FROM REMINDERS WHERE ID = {id}").format(id=r_id)
+        self.con.commit()
         pass

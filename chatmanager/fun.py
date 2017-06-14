@@ -12,27 +12,27 @@ class Plugin(bot.ChatManager):
     async def cmd_coolest(self, message, *_):
         """
         Usage:
-                !command [params]
+                !coolest
 
-        This describes what the command does.
+        Gives the coolest user on the server.
         """
         await self.bot.send_msg(message.channel, "{0} is the coolest!".format(self.get_name(message)))
 
-    async def cmd_choose(self, message, *choice):
+    async def cmd_choose(self, message, *choice): # Choose nothing?
         """
         Usage:
-                !command [params]
+                !choose <arg1 arg2, [arg3, etc.]>
 
-        This describes what the command does.
+        Lets the bot choose from a list of options.
         """
         await self.bot.send_msg(message.channel, "I choose \"{0}\" this time.".format(random.choice(choice[0])))
 
     async def cmd_rps(self, message, *throw):
         """
         Usage:
-                !command [params]
+                !rps <rock | paper | scissors>
 
-        This describes what the command does.
+        Play a game of rock, paper, scissors with the bot. It usually doesn't cheat.
         """
         choices = ["rock", "paper", "scissors"]
         ai_choice = random.choice(choices)
@@ -50,9 +50,9 @@ class Plugin(bot.ChatManager):
     async def cmd_flip(self, message, *flip_args):
         """
         Usage:
-                !command [params]
+                !flip <heads | tails>
 
-        This describes what the command does.
+        Flip a coin. Call it in the air.
         """
         flips = ["heads", "tails"]
         result = random.choice(flips)
@@ -67,9 +67,9 @@ class Plugin(bot.ChatManager):
     async def cmd_8ball(self, message, *args):
         """
         Usage:
-                !command [params]
+                !8ball <question>
 
-        This describes what the command does.
+        Ask the Magic 8 Ball a question and see what it says.
         """
         answers = ["It is certain", "It is decidedly so", "Without a doubt", "Yes definitely", "You may rely on it",
                    "As I see it, yes", "Most likely", "Very doubtful", "Yes", "Signs point to yes", "Ask again later",
@@ -84,9 +84,9 @@ class Plugin(bot.ChatManager):
     async def cmd_emotetext(self, message, *args):
         """
         Usage:
-                !command [params]
+                !emotetext <emote> <text>
 
-        This describes what the command does.
+        Easily create sentences with emotes in between each word.
         """
         if len(args[0]) < 5:
             await self.bot.send_msg(message.channel, "Do it yourself you lazy bum.")
@@ -96,9 +96,9 @@ class Plugin(bot.ChatManager):
     async def cmd_roll(self, message, *args):
         """
         Usage:
-                !command [params]
+                !roll 10d20
 
-        This describes what the command does.
+        Rolls any type of die some number of times (Limit 100), i.e. 1d20, 10d8, 4d6, etc.
         """
         try:
             dice = args[0][0].split("d")
@@ -122,9 +122,9 @@ class Plugin(bot.ChatManager):
     async def cmd_imgur(self, message, *_):
         """
         Usage:
-                !command [params]
+                !imgur
 
-        This describes what the command does.
+        Generates random imgur links and displays the first one that exists and how many attempts it took.
         """
         prefix = "https://i.imgur.com/"
         chars = string.ascii_letters + string.digits
@@ -141,21 +141,12 @@ class Plugin(bot.ChatManager):
                 attempts += 1
                 continue
 
-    async def cmd_youtube(self, message, *_):
-        """
-        Usage:
-                !command [params]
-
-        This describes what the command does.
-        """
-        pass
-
     async def cmd_fact(self, message, *_):
         """
         Usage:
-                !command [params]
+                !fact
 
-        This describes what the command does.
+        Displays a random fact it found on reddit. Hopefully it's interesting.
         """
         with urllib.request.urlopen("https://www.reddit.com/r/funfacts/random") as response:
             await self.bot.send_msg(message.channel, response.geturl())
@@ -163,9 +154,9 @@ class Plugin(bot.ChatManager):
     async def cmd_joke(self, message, *_):
         """
         Usage:
-                !command [params]
+                !joke
 
-        This describes what the command does.
+        Displays a random joke it found on reddit. Hopefully it's funny.
         """
         with urllib.request.urlopen("https://www.reddit.com/r/jokes/random") as response:
             await self.bot.send_msg(message.channel, response.geturl())
@@ -173,9 +164,10 @@ class Plugin(bot.ChatManager):
     async def cmd_wiki(self, message, *args):
         """
         Usage:
-                !command [params]
+                !wiki [thing]
 
-        This describes what the command does.
+        Displays an article for a specific thing based on the parameter. 
+        If no arguments are provided, a random link is displayed.
         """
         if not args[0]:
             link = "https://en.wikipedia.org/wiki/Special:Random"

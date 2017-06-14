@@ -7,18 +7,17 @@ from datetime import timedelta
 from datetime import datetime
 from chatmanager import bot
 
-class Plugin(bot.ChatManager):
-    con = c = bot = None  # Defining connection and cursor for sql DB
-    lottery = []
-    server = None
-    #TODO HORSE RACE???
+#TODO HORSE RACE & RANKUP
 
+
+class Plugin(bot.ChatManager):
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
         self.c = self.con.cursor()
         self.c.execute("CREATE TABLE IF NOT EXISTS CURRENCY (ID INTEGER PRIMARY KEY, BALANCE INTEGER)")
         self.con.commit()
         self.bot = client
+        self.lottery = []
         self.next_draw = datetime.now() + timedelta(seconds=constants.DRAW_TIME)
         asyncio.async(self.payout())
         asyncio.async(self.lottery_draw())
@@ -89,18 +88,18 @@ class Plugin(bot.ChatManager):
     async def cmd_bal(self, message, *_):
         """
         Usage:
-                !command [params]
+                !bal
 
-        This describes what the command does.
+        Displays your balance.
         """
         await self.cmd_balance(message)
 
     async def cmd_balance(self, message, *_):
         """
         Usage:
-                !command [params]
+                !balance
 
-        This describes what the command does.
+        Displays your balance.
         """
         bal = self.get_bal(message.author.id)
         await self.bot.send_msg(message.channel, "Hello, <@{0}>! You currently have __**{1}**__ points.".format(message.author.id, format(bal, ",d")))
@@ -108,9 +107,9 @@ class Plugin(bot.ChatManager):
     async def cmd_buy(self, message, *args):
         """
         Usage:
-                !command [params]
+                !buy <tickets>
 
-        This describes what the command does.
+        Purchases a specified number of tickets for the next lottery.
         """
         tickets = self.check_input(message, args[0])
         if type(tickets) is str:  await self.bot.send_msg(message.channel,  tickets)
@@ -124,9 +123,10 @@ class Plugin(bot.ChatManager):
     async def cmd_give(self, message, *args):
         """
         Usage:
-                !command [params]
+                !give <amount> <@user> 
 
-        This describes what the command does.
+        Gives a user some points from your balance.
+        Consider it a gift and don't expect to get it back.
         """
         try:
             user_id = int(args[0][1].lstrip("<!@").rstrip(">"))
@@ -142,9 +142,9 @@ class Plugin(bot.ChatManager):
     async def cmd_lottery(self, message, *_):
         """
         Usage:
-                !command [params]
+                !lottery
 
-        This describes what the command does.
+        Displays the jackpot and time until next draw.
         """
         time = self.next_draw - datetime.now()
         minutes = int(time.total_seconds()/60)
@@ -156,9 +156,9 @@ class Plugin(bot.ChatManager):
     async def cmd_leaderboard(self, message, *_):
         """
         Usage:
-                !command [params]
+                !leaderboard
 
-        This describes what the command does.
+        Displays the 10 users with the highest balance on the server.
         """
         self.c.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
         leaders = self.c.fetchall()
@@ -173,9 +173,9 @@ class Plugin(bot.ChatManager):
     async def cmd_slots(self, message, *args):
         """
         Usage:
-                !command [params]
+                !slots <amount>
 
-        This describes what the command does.
+        Insert some money into the slot machine and give it a spin.
         """
         pay = self.check_input(message, args[0])
         if type(pay) is str:
@@ -212,7 +212,10 @@ class Plugin(bot.ChatManager):
         Usage:
                 !bet [ALL | 1K/1M/1B/1T | <number>]
 
-        This describes what the command does.
+        Bets a certain amount of money on a coin toss. Double or nothing!
+        You may input a number, ALL, or K, M, B, T behind a number.
+        K = thousand M = million B = billion T = trillion
+        Be careful when betting ALL. You may lose everything. No take backs!
         """
         pay = self.check_input(message, args[0])
         if type(pay) is str:
@@ -229,9 +232,10 @@ class Plugin(bot.ChatManager):
     async def cmd_rankup(self, message, *_): #has to be awaited.... fit this in somewhere???
         """
         Usage:
-                !rankup [params]
+                !rankup [l | list]
 
-        This describes what the command does.
+        Ranks you up to the next highest tier.
+        Use !rankup list or !rankup l to display all the ranks and their costs.
         """
         role = None
         for r in message.server.roles:

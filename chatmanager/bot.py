@@ -5,6 +5,7 @@ from textwrap import dedent
 from discord.ext.commands import Bot
 from importlib import import_module
 
+
 class ChatManager(Bot):
     command_list = []
     plugin_list = {}
@@ -48,26 +49,49 @@ class ChatManager(Bot):
         return None
 
     def check_rights(self, message, arg):
-        pass
+        id = message.author.id; role_list = message.author.roles
+        user_group = None
+        #if id == constants.OWNER_ID:
+            #return True
+        for k in self.cfg:
+            if k == "DEFAULT": continue
+            roles = self.cfg[k]["GrantRoles"].split(" "); users = self.cfg[k]["GrantUsers"].split(" ")
+            if role_list in roles or id in users:
+                user_group = k; break
+        if not user_group: user_group = "DEFAULT"
+        whitelist = self.cfg[user_group]["CommandWhitelist"].split(" ")
+        blacklist = self.cfg[user_group]["CommandBlacklist"].split(" ")
+        if whitelist == [""]:
+            if arg in blacklist: return False
+            return True
+        else:
+            if arg in whitelist: return True
+            return False
 
     def __init__(self, command_prefix):
         super().__init__(command_prefix)
         self.command_list = self.get_general_commands()
-        self.cfg = configparser.ConfigParser().read("config/config.ini")
+        self.cfg = configparser.ConfigParser()
+        self.cfg.read("config/permissions.ini")
+        self.disconnect = False
+        self.restart = False
 
     async def incoming_message(self, message): # TODO check_rights()
         args = message.content.split(" ")
         arg = args.pop(0)[1:].lower() # get the command the user just sent and remove the !
-        if "cmd_" + arg in self.command_list:    # check general commands
-            await getattr(self, "cmd_" + arg)(message, args)
-        else:
-            cmd = self.check_plugins(arg)  # check plugin commands if it's not found in general
-            if cmd is not None:
-                await getattr(cmd[0], cmd[1])(message, args)
-            else:          # If all else fails, tell them this isn't a command
-                await self.send_msg(message.channel, "```That's not a command!"
+        if self.check_rights(message, arg):
+            if "cmd_" + arg in self.command_list:    # check general commands
+                await getattr(self, "cmd_" + arg)(message, args)
+            else:
+                cmd = self.check_plugins(arg)  # check plugin commands if it's not found in general
+                if cmd is not None:
+                    await getattr(cmd[0], cmd[1])(message, args)
+                else:          # If all else fails, tell them this isn't a command
+                    await self.send_msg(message.channel, "```That's not a command!"
                                                          "\nPlease use {0}help for a list of commands.```"
                                                          .format(self.command_prefix))
+        else:
+            await self.send_msg(message.channel, ":no_entry_sign: **ACCESS DENIED** :no_entry_sign:")
 
     async def cmd_help(self, message, *args):
         """
@@ -117,27 +141,27 @@ class ChatManager(Bot):
     async def cmd_hello(self, message, *_):
         """
         Usage:
-                !command [params]
+                !hello
 
-        This describes what the command does.
+        Greets the bot.
         """
         await self.send_msg(message.channel, "Hello, {0}. I am {1}!".format(self.get_name(message), self.user.name))
 
     async def cmd_me(self, message, *_):
         """
         Usage:
-                !command [params]
+                !me
 
-        This describes what the command does.
+        Gives some info about yourself.
         """
         await self.send_message(message.channel, "You are {1} in {0.server.name} in the "
                                                  "{0.channel.name} channel".format(message, self.get_name(message)))
     async def cmd_joined(self, message, *_):   # make usable on other users
         """
         Usage:
-                !command [params]
+                !joined
 
-        This describes what the command does.
+        Gives the date of when you joined the server.
         """
         server = message.server.name
         date = message.author.joined_at.strftime("%B %d, %Y")
@@ -146,9 +170,9 @@ class ChatManager(Bot):
     async def cmd_online(self, message, *_):
         """
         Usage:
-                !command [params]
+                !online
 
-        This describes what the command does.
+        Gives a list of all the users online on this server.
         """
         users = message.server.members
         members = []
@@ -165,18 +189,18 @@ class ChatManager(Bot):
     async def cmd_motd(self, message, *_):
         """
         Usage:
-                !command [params]
+                !motd
 
-        This describes what the command does.
+        Displays the message of the day.
         """
         await self.send_msg(message.channel, "__**M O T D**__```{0}```".format(constants.MOTD))
 
     async def cmd_setmotd(self, message, *args):
         """
         Usage:
-                !command [params]
+                !setmotd <motd>
 
-        This describes what the command does.
+        Sets the message of the day for other users to see.
         """
         if not args[0]:
             await self.send_msg(message.channel, "```You didn't set a new MOTD!```")
@@ -192,6 +216,7 @@ class ChatManager(Bot):
 
         Forces the bot to disconnect.
         """
+        self.disconnect = True
         await self.send_msg(message.channel, "Shutting down...")
         await self.close()
 
@@ -202,6 +227,6 @@ class ChatManager(Bot):
 
         Forces the bot to disconnect, then reconnect.
         """
+        self.restart = True
         await self.send_msg(message.channel, "I'll be back...")
-        # Figure out how to restart bot
-        pass
+        await self.logout()
