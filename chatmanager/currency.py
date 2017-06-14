@@ -7,7 +7,7 @@ from datetime import timedelta
 from datetime import datetime
 from chatmanager import bot
 
-#TODO HORSE RACE & RANKUP
+#TODO HORSE RACE & RANKUP & BET ALL
 
 
 class Plugin(bot.ChatManager):

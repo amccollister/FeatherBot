@@ -7,10 +7,6 @@ from importlib import import_module
 
 
 class ChatManager(Bot):
-    command_list = []
-    plugin_list = {}
-    #TODO command rights w/ configparser
-
     @staticmethod
     def get_general_commands():
         cmd_list = [func for func in dir(ChatManager) if str(func).startswith("cmd_")]
@@ -51,8 +47,8 @@ class ChatManager(Bot):
     def check_rights(self, message, arg):
         id = message.author.id; role_list = message.author.roles
         user_group = None
-        #if id == constants.OWNER_ID:
-            #return True
+        if id == constants.OWNER_ID:
+            return True
         for k in self.cfg:
             if k == "DEFAULT": continue
             roles = self.cfg[k]["GrantRoles"].split(" "); users = self.cfg[k]["GrantUsers"].split(" ")
@@ -71,6 +67,7 @@ class ChatManager(Bot):
     def __init__(self, command_prefix):
         super().__init__(command_prefix)
         self.command_list = self.get_general_commands()
+        self.plugin_list = {}
         self.cfg = configparser.ConfigParser()
         self.cfg.read("config/permissions.ini")
         self.disconnect = False
