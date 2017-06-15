@@ -69,14 +69,29 @@ class Plugin(bot.ChatManager):
         self.con.commit()
         return int(self.c.fetchone()[1])
 
+    @staticmethod
+    def get_role(message, role_id):
+        for r in message.server.roles:
+            if r.id == role_id:
+                return r
+        return None
+
     def update_bal(self, user_id, bal):
         self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {bal} WHERE ID = {id}".format(bal=bal, id=user_id))
         self.con.commit()
 
     def check_input(self, message, *args):
         bal = self.get_bal(message.author.id)
+        short_hand = {"k": 10**3, "m": 10**6, "b": 10**9, "t": 10**12}
         try:
-            input = int(args[0][0])
+            arg = args[0][0]
+            if arg.lower() == "all": return bal
+            if arg[-1:].lower() in ["k", "m", "b", "t"]:
+                input = int(arg[:-1])
+                suffix = arg[-1:].lower()
+                input *= short_hand[suffix]
+            else:
+                input = int(arg)
             if input <= 0:
                 return "You can't offer nothing!"
             elif input > bal:
@@ -219,7 +234,7 @@ class Plugin(bot.ChatManager):
         """
         pay = self.check_input(message, args[0])
         if type(pay) is str:
-            await self.bot.send_msg(message.channel, pay)
+            return await self.bot.send_msg(message.channel, pay)
         call = random.choice(["heads", "tails"])
         land = random.choice(["heads", "tails"])
         result = "WON"
@@ -229,7 +244,7 @@ class Plugin(bot.ChatManager):
         self.update_bal(message.author.id, pay)
         await self.bot.send_msg(message.channel, "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result, format(self.get_bal(message.author.id), ",d")))
 
-    async def cmd_rankup(self, message, *_): #has to be awaited.... fit this in somewhere???
+    async def cmd_rankup(self, message, *args): #todo get the role object somehow... get role
         """
         Usage:
                 !rankup [l | list]
@@ -237,9 +252,24 @@ class Plugin(bot.ChatManager):
         Ranks you up to the next highest tier.
         Use !rankup list or !rankup l to display all the ranks and their costs.
         """
-        role = None
-        for r in message.server.roles:
-            if r.id == "321589674147708928":
-                role = r
-        await self.bot.add_roles(message.author, role)
-        await self.bot.send_msg(message.channel, "Done!")
+        role = message.author.top_role
+        if len(constants.RANK_COST) != len(constants.RANK_LIST):# or constants.RANK_LIST not in (r.id for r in message.server.roles):
+            return await self.bot.send_msg (message.channel, "There's a problem with the rankup list.\n"
+                                                             "The feature is currently disabled. Please contact the owner")
+
+        arg = args and args[0] or None
+        if arg is None:
+            index = 0
+            for i in range(len(constants.RANK_LIST)):
+                if role.id == constants.RANK_LIST[i]:
+                    index = i+1
+                    break
+            r = self.get_role(message, constants.RANK_LIST[index])
+            await self.bot.add_roles(message.author, r)
+            await self.bot.send_msg(message.channel, "Congratulations! You are now part of the {} rank!".format(r))
+        else:
+            output = "__**RANK LIST**__```"
+            for i in range(len(constants.RANK_LIST)):
+                output += "{}\t\t{}\n".format(constants.RANK_LIST[i], constants.RANK_COST[i])
+            output += "```"
+            await self.bot.send_msg(message.channel, output)
