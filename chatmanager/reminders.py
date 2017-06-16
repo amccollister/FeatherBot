@@ -1,6 +1,6 @@
 import sqlite3 as sql
 import asyncio
-import parsedatetime.parsedatetime as pdt
+import parsedatetime
 
 from datetime import timedelta
 from datetime import datetime
@@ -12,12 +12,12 @@ from chatmanager import bot
 class Plugin(bot.ChatManager):
     reminders = []
 
-    def __init__(self, client):
+    def __init__(self, bot):
         self.con = sql.connect("db/reminders.sqlite")
         self.c = self.con.cursor()
-        self.c.execute("CREATE TABLE IF NOT EXISTS REMINDERS (ID INTEGER PRIMARY KEY, REMIND TEXT, DATE TEXT)")
+        self.c.execute("CREATE TABLE IF NOT EXISTS REMINDERS (ID INTEGER PRIMARY KEY, USER_ID TEXT, REMIND TEXT, DATE TEXT)")
         self.con.commit()
-        self.bot = client
+        self.bot = bot
         asyncio.async(self.check_reminders())
 
     @asyncio.coroutine
@@ -37,9 +37,10 @@ class Plugin(bot.ChatManager):
         """
         # Basically a copy of https://github.com/SIlver--/remindmebot-reddit
 
-        cal = pdt.Calendar()
-        self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
-        await self.bot.send_msg(message.channel, "It worked! You'll get a reminder in 5 seconds")
+        cal = parsedatetime.Calendar()
+        print(cal.parse("Oct 18 2017 to take out the trash yesterday"))
+        #self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
+        #await self.bot.send_msg(message.channel, "It worked! You'll get a reminder in 5 seconds")
 
     async def cmd_checkreminders(self, message, *args):
         """

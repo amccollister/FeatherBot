@@ -7,7 +7,7 @@ from datetime import timedelta
 from datetime import datetime
 from chatmanager import bot
 
-#TODO HORSE RACE & RANKUP & BET ALL
+#TODO horse race?
 
 
 class Plugin(bot.ChatManager):
@@ -194,7 +194,7 @@ class Plugin(bot.ChatManager):
         """
         pay = self.check_input(message, args[0])
         if type(pay) is str:
-            await self.bot.send_msg(message.channel, pay)
+            return await self.bot.send_msg(message.channel, pay)
         wheel = [":white_check_mark:", ":seven:", ":bell:", ":no_entry_sign:",
                  ":large_blue_diamond:", ":moneybag:", ":triangular_flag_on_post:"]
         w1 = random.randrange(0, 6); w2 = random.randrange(0, 6); w3 = random.randrange(0, 6)
@@ -208,7 +208,7 @@ class Plugin(bot.ChatManager):
                 if w[0] == spin[1][0] and i == 2:
                     output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(int(win+pay), ",d"))
             output += "\n| "
-            await self.bot.send_msg(message.channel, output[:-3])
+        await self.bot.send_msg(message.channel, output[:-3])
 
     def get_payout(self, wheel, bet):
         pay = constants.SLOTS_PAYOUT
@@ -244,7 +244,7 @@ class Plugin(bot.ChatManager):
         self.update_bal(message.author.id, pay)
         await self.bot.send_msg(message.channel, "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result, format(self.get_bal(message.author.id), ",d")))
 
-    async def cmd_rankup(self, message, *args): #todo get the role object somehow... get role
+    async def cmd_rankup(self, message, *args):
         """
         Usage:
                 !rankup [l | list]
@@ -253,23 +253,29 @@ class Plugin(bot.ChatManager):
         Use !rankup list or !rankup l to display all the ranks and their costs.
         """
         role = message.author.top_role
-        if len(constants.RANK_COST) != len(constants.RANK_LIST):# or constants.RANK_LIST not in (r.id for r in message.server.roles):
-            return await self.bot.send_msg (message.channel, "There's a problem with the rankup list.\n"
-                                                             "The feature is currently disabled. Please contact the owner")
-
         arg = args and args[0] or None
-        if arg is None:
-            index = 0
-            for i in range(len(constants.RANK_LIST)):
-                if role.id == constants.RANK_LIST[i]:
-                    index = i+1
-                    break
-            r = self.get_role(message, constants.RANK_LIST[index])
-            await self.bot.add_roles(message.author, r)
-            await self.bot.send_msg(message.channel, "Congratulations! You are now part of the {} rank!".format(r))
-        else:
-            output = "__**RANK LIST**__```"
-            for i in range(len(constants.RANK_LIST)):
-                output += "{}\t\t{}\n".format(constants.RANK_LIST[i], constants.RANK_COST[i])
-            output += "```"
-            await self.bot.send_msg(message.channel, output)
+        error = "There's a problem with the rankup list.\n The feature is currently disabled. Please contact the owner."
+        if len(constants.RANK_COST) != len(constants.RANK_LIST):
+            return await self.bot.send_msg (message.channel, error)
+        elif role.id == constants.RANK_LIST[-1:][0]:
+            return await self.bot.send_msg(message.channel, "You're already the highest rank.")
+        try:
+            if arg is None:
+                index = 0
+                for i in range(len(constants.RANK_LIST)-1):
+                    if role.id == constants.RANK_LIST[i]:
+                        index = i+1
+                        break
+                r = self.get_role(message, constants.RANK_LIST[index])
+                if self.get_bal(message.author.id) < int(constants.RANK_COST[index]): return await self.bot.send_msg(message.channel, "You cannot afford to rank up, yet!")
+                self.update_bal(message.author.id, -int(constants.RANK_COST[index]))
+                await self.bot.add_roles(message.author, r)
+                await self.bot.send_msg(message.channel, "Congratulations! You are now part of the {} rank!\nYou now have **{}** points.".format(r, format(self.get_bal(message.author.id), ",d")))
+            else:
+                output = "__**RANK LIST**__```"
+                for i in range(len(constants.RANK_LIST)):
+                    output += "{}\t\t{}\n".format(self.get_role(message, constants.RANK_LIST[i]), constants.RANK_COST[i])
+                output += "```"
+                await self.bot.send_msg(message.channel, output)
+        except:
+            await self.bot.send_msg(message.channel, error)
