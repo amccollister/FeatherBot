@@ -44,6 +44,7 @@ class ChatManager(Bot):
                 return [p, "cmd_" + arg]
         return None
 
+    #TODO THIS TOTES DOESN'T WORK WTF fix line 56
     def check_rights(self, message, arg):
         id = message.author.id; role_list = message.author.roles
         user_group = None
@@ -52,7 +53,7 @@ class ChatManager(Bot):
         for k in self.cfg:
             if k == "DEFAULT": continue
             roles = self.cfg[k]["GrantRoles"].split(" "); users = self.cfg[k]["GrantUsers"].split(" ")
-            if role_list in roles or id in users:
+            if (id in users) or any(r.id in roles for r in role_list):
                 user_group = k; break
         if not user_group: user_group = "DEFAULT"
         whitelist = self.cfg[user_group]["CommandWhitelist"].split(" ")
@@ -225,5 +226,5 @@ class ChatManager(Bot):
         Forces the bot to disconnect, then reconnect.
         """
         self.restart = True
-        await self.send_msg(message.channel, "I'll be back...")
+        await self.send_msg(message.channel, "I'll be back... :sunglasses: ")
         await self.logout()

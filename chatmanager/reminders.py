@@ -36,9 +36,9 @@ class Plugin(bot.ChatManager):
         Gives you a reminder some time in the future.
         """
         # Basically a copy of https://github.com/SIlver--/remindmebot-reddit
-
+        if not args[0]: return await self.bot.send_msg(message.channel, "I don't know when to remind you.")
         cal = parsedatetime.Calendar()
-        print(cal.parse("Oct 18 2017 to take out the trash yesterday"))
+        print(cal.parse(" ".join(args[0])))
         #self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
         #await self.bot.send_msg(message.channel, "It worked! You'll get a reminder in 5 seconds")
 

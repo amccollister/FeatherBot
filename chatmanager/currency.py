@@ -82,11 +82,11 @@ class Plugin(bot.ChatManager):
 
     def check_input(self, message, *args):
         bal = self.get_bal(message.author.id)
-        short_hand = {"k": 10**3, "m": 10**6, "b": 10**9, "t": 10**12}
+        short_hand = {"k": 10**3, "m": 10**6, "b": 10**9, "t": 10**12, "q": 10**15}
         try:
             arg = args[0][0]
             if arg.lower() == "all": return bal
-            if arg[-1:].lower() in ["k", "m", "b", "t"]:
+            if arg[-1:].lower() in ["k", "m", "b", "t", "q"]:
                 input = int(arg[:-1])
                 suffix = arg[-1:].lower()
                 input *= short_hand[suffix]
@@ -179,11 +179,12 @@ class Plugin(bot.ChatManager):
         leaders = self.c.fetchall()
         output = "__**LEADERBOARD**__```"
         for l in leaders:
-            member = list(self.bot.servers)[0].get_member(str(l[0]))
+            member = message.server.get_member(str(l[0]))
+            if not member: continue # TODO if a user leaves, they're still in db... clean this up
             name = member.nick
             if not name:  name = member.name
             output += "{0}\t\t{1}\n".format(name, format(l[1], ",.0f"))
-            await self.bot.send_msg(message.channel, output + "```")
+        await self.bot.send_msg(message.channel, output + "```")
 
     async def cmd_slots(self, message, *args):
         """
@@ -206,7 +207,7 @@ class Plugin(bot.ChatManager):
             for i in range(3):
                 output += wheel[w[i]] + " | "
                 if w[0] == spin[1][0] and i == 2:
-                    output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(int(win+pay), ",d"))
+                    output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(win+pay, ",.0f"))
             output += "\n| "
         await self.bot.send_msg(message.channel, output[:-3])
 
