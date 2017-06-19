@@ -59,10 +59,13 @@ class Plugin(bot.ChatManager):
                "points with {2} tickets.\n The pot held {3} tickets!".format(user_id, format(payout, ",d"), tickets, total)
 
     def add_users(self, mem_list):
+        id_list = []
         for m in mem_list:
-            self.c.execute("INSERT OR IGNORE INTO CURRENCY (ID, BALANCE) VALUES ({id}, 0)".format(id=m.id))
-            self.con.commit()
-        self.c.execute("SELECT * FROM CURRENCY")
+            id_list.append([m.id, 0])
+        self.c.execute("BEGIN TRANSACTION")
+        self.c.executemany("INSERT OR IGNORE INTO CURRENCY ('ID', 'BALANCE') VALUES(?, ?)", id_list)
+        self.c.execute("COMMIT")
+        self.con.commit()
 
     def get_bal(self, user_id):
         self.c.execute("SELECT * FROM CURRENCY WHERE ID = {id}".format(id=user_id))
@@ -183,7 +186,7 @@ class Plugin(bot.ChatManager):
             if not member: continue # TODO if a user leaves, they're still in db... clean this up
             name = member.nick
             if not name:  name = member.name
-            output += "{0}\t\t{1}\n".format(name, format(l[1], ",.0f"))
+            output += "{:12s}\t\t{:,.0f}\n".format(name[:12], l[1]) #format(, ",.0f"))
         await self.bot.send_msg(message.channel, output + "```")
 
     async def cmd_slots(self, message, *args):
@@ -220,6 +223,7 @@ class Plugin(bot.ChatManager):
             winnings *= (float(pay[wheel[1]]) * 0.1)
         else:
             return winnings * -1
+        print(bet)
         winnings -= bet
         return winnings
 
@@ -275,7 +279,7 @@ class Plugin(bot.ChatManager):
             else:
                 output = "__**RANK LIST**__```"
                 for i in range(len(constants.RANK_LIST)):
-                    output += "{}\t\t{}\n".format(self.get_role(message, constants.RANK_LIST[i]), constants.RANK_COST[i])
+                    output += "{:15s}{:,.0f}\n".format(str(self.get_role(message, constants.RANK_LIST[i])), int(constants.RANK_COST[i]))
                 output += "```"
                 await self.bot.send_msg(message.channel, output)
         except:

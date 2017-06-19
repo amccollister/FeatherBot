@@ -10,12 +10,10 @@ from chatmanager import bot
 
 
 class Plugin(bot.ChatManager):
-    reminders = []
-
     def __init__(self, bot):
         self.con = sql.connect("db/reminders.sqlite")
         self.c = self.con.cursor()
-        self.c.execute("CREATE TABLE IF NOT EXISTS REMINDERS (ID INTEGER PRIMARY KEY, USER_ID TEXT, REMIND TEXT, DATE TEXT)")
+        self.c.execute("CREATE TABLE IF NOT EXISTS REMINDERS (ID INTEGER PRIMARY KEY, USER_ID TEXT, REMIND TEXT, DATE TEXT, CHANNEL TEXT)")
         self.con.commit()
         self.bot = bot
         asyncio.async(self.check_reminders())
@@ -23,24 +21,33 @@ class Plugin(bot.ChatManager):
     @asyncio.coroutine
     async def check_reminders(self):
         while True:
-            if self.reminders and self.reminders[0][1] < datetime.now(): # await bot.send_message
-                await self.bot.send_message(self.reminders[0][2].channel, self.reminders[0][0])
-                self.reminders.pop()
+            self.c.execute("SELECT * FROM REMINDERS ORDER BY DATE ASC LIMIT 1")
+            reminder = self.c.fetchone()
+            if reminder and datetime.strptime(reminder[3], "%Y-%m-%d %H:%M:%S") < datetime.now():
+                await self.bot.send_msg(self.bot.get_channel(reminder[4]), "<@{0}> Reminder: \"{1}\"".format(reminder[1], reminder[2]))
+                self.c.execute("DELETE FROM REMINDERS WHERE ID = {id}".format(id=reminder[0]))
+                self.con.commit()
             await asyncio.sleep(1)
 
     async def cmd_remindme(self, message, *args):
         """
         Usage:
-                !remindme [time] [message]
+                !remindme [time] - [message]
 
         Gives you a reminder some time in the future.
+        Separate the time and the message with a "-"
         """
         # Basically a copy of https://github.com/SIlver--/remindmebot-reddit
-        if not args[0]: return await self.bot.send_msg(message.channel, "I don't know when to remind you.")
+        if not args[0]: return await self.bot.send_msg(message.channel, "I have nothing to remind you about.")
+        arg = " ".join(args[0]).split("-")
         cal = parsedatetime.Calendar()
-        print(cal.parse(" ".join(args[0])))
-        #self.reminders.append(["This was a 5 second reminder", datetime.today() + timedelta(seconds=5), message])
-        #await self.bot.send_msg(message.channel, "It worked! You'll get a reminder in 5 seconds")
+        time = (cal.parseDT(arg[0]))[0]
+        msg = "Reminder."
+        if len(arg) == 2: msg = arg[1].strip()
+        self.c.execute("INSERT INTO REMINDERS ('USER_ID', 'REMIND', 'DATE', 'CHANNEL') VALUES(?, ?, ?, ?)",
+                       [message.author.id, msg, time, message.channel.id])
+        self.con.commit()
+        await self.bot.send_msg(message.channel, "All set!\nWe'll remind you about \"{}\" on {}".format(msg, time))
 
     async def cmd_checkreminders(self, message, *args):
         """
@@ -49,9 +56,16 @@ class Plugin(bot.ChatManager):
 
         Displays a list of all your reminders.
         """
-        self.c.execute("SELECT * FROM REMINDERS WHERE ID = {id}".format(id=message.author.id))
+        self.c.execute("SELECT * FROM REMINDERS WHERE USER_ID = {id}".format(id=message.author.id))
         self.con.commit()
         reminders = self.c.fetchall()
+        if not reminders:
+            return await self.bot.send_msg(message.channel, "You don't have any reminders.")
+        list = ""
+        for r in reminders:
+            list += "{:4d}  {:14s}  {}\n".format(r[0], r[2][:14], r[3])
+        await self.bot.send_msg(message.channel, "```ID\tREMINDER\t\tTIME\n"
+                                                 "-----------------------------------------\n{}```".format(list))
 
     async def cmd_undoreminder(self, message, *args):
         """
@@ -60,10 +74,13 @@ class Plugin(bot.ChatManager):
 
         Removes the latest reminder you added.
         """
-        self.c.execute("SELECT * FROM REMINDERS WHERE ID = {id} ORDER BY ID DESC".format(id=message.author.id))
-        self.con.commit()
+        self.c.execute("SELECT * FROM REMINDERS WHERE USER_ID = {id} ORDER BY ID DESC".format(id=message.author.id))
         reminder = self.c.fetchone()
-        pass
+        if reminder:
+            self.c.execute("DELETE FROM REMINDERS WHERE ID = {id}".format(id=reminder[0]))
+            self.con.commit()
+            return await self.bot.send_msg(message.channel, "Removed your \"{}\" reminder that was set for {}.".format(reminder[2], reminder[3]))
+        await self.bot.send_msg(message.channel, "You don't have any reminders.")
 
     async def cmd_removereminder(self, message, *args):
         """
@@ -72,7 +89,16 @@ class Plugin(bot.ChatManager):
 
         Removes one of your reminders.
         """
-        r_id = None
-        self.c.execute("DELETE FROM REMINDERS WHERE ID = {id}").format(id=r_id)
-        self.con.commit()
-        pass
+        try:
+            id = int(args[0][0])
+        except:
+            return await self.bot.send_msg(message.channel, "That's not a valid ID!")
+        self.c.execute("SELECT * FROM REMINDERS WHERE ID = {id}".format(id=id))
+        reminder = self.c.fetchone()
+        if reminder and reminder[1] == message.author.id:
+            self.c.execute("DELETE FROM REMINDERS WHERE ID = {id}".format(id=id))
+            await self.bot.send_msg(message.channel, "Removed your \"{}\" reminder that was set for {}."
+                                    .format(reminder[2], reminder[3]))
+            self.con.commit()
+        else:
+            return await self.bot.send_msg(message.channel, "You don't have any reminders with that ID.")

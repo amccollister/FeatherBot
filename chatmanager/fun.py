@@ -141,7 +141,7 @@ class Plugin(bot.ChatManager):
                 attempts += 1
                 continue
 
-    async def cmd_fact(self, message, *_):
+    async def cmd_fact(self, message, *_): # TOO MANY REQUESTS?
         """
         Usage:
                 !fact
