@@ -218,12 +218,12 @@ class Plugin(bot.ChatManager):
         pay = constants.SLOTS_PAYOUT
         winnings = bet
         if wheel[0] == wheel[1] and wheel[1] == wheel[2]:
-            winnings *= pay[wheel[1]]
+            winnings *= int(pay[wheel[1]])
         elif wheel[0] == wheel[1] or wheel[1] == wheel[2]:
             winnings *= (float(pay[wheel[1]]) * 0.1)
         else:
             return winnings * -1
-        print(bet)
+        print(winnings, bet, wheel)
         winnings -= bet
         return winnings
 
