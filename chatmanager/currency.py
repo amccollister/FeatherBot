@@ -149,10 +149,10 @@ class Plugin(bot.ChatManager):
         try:
             user_id = int(args[0][1].lstrip("<!@").rstrip(">"))
         except:
-            await self.bot.send_msg(message.channel, "You gave nothing to no one. Charitable! (I could not find that user)")
+            return await self.bot.send_msg(message.channel, "You gave nothing to no one. Charitable! (I could not find that user)")
         money = self.check_input(message, args[0])
         if type(money) is str:
-            await self.bot.send_msg(message.channel, money)
+            return await self.bot.send_msg(message.channel, money)
         self.update_bal(user_id, money)
         self.update_bal(message.author.id, money * -1)
         await self.bot.send_msg(message.channel, "<@{0}> gave __**{1}**__ points to <@{2}>".format(message.author.id, format(money, ",.0f"), user_id))
