@@ -130,9 +130,9 @@ class Plugin(bot.ChatManager):
         Purchases a specified number of tickets for the next lottery.
         """
         tickets = self.check_input(message, args[0])
-        if type(tickets) is str:  await self.bot.send_msg(message.channel,  tickets)
+        if type(tickets) is str:  return await self.bot.send_msg(message.channel,  tickets)
         cost = tickets * constants.LOTTERY_PRICE
-        if cost > self.get_bal(message.author.id): await self.bot.send_msg(message.channel, "You can't afford that many tickets!")
+        if cost > self.get_bal(message.author.id): return await self.bot.send_msg(message.channel, "You can't afford that many tickets!")
         for i in range(tickets):
             self.lottery.append(message.author.id)
         self.update_bal(message.author.id, cost * -1)
