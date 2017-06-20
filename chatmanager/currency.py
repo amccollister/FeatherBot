@@ -7,18 +7,17 @@ from datetime import timedelta
 from datetime import datetime
 from chatmanager import bot
 
-class Plugin(bot.ChatManager):
-    con = c = bot = None  # Defining connection and cursor for sql DB
-    lottery = []
-    server = None
-    #TODO HORSE RACE???
+#TODO horse race?
 
+
+class Plugin(bot.ChatManager):
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
         self.c = self.con.cursor()
         self.c.execute("CREATE TABLE IF NOT EXISTS CURRENCY (ID INTEGER PRIMARY KEY, BALANCE INTEGER)")
         self.con.commit()
         self.bot = client
+        self.lottery = []
         self.next_draw = datetime.now() + timedelta(seconds=constants.DRAW_TIME)
         asyncio.async(self.payout())
         asyncio.async(self.lottery_draw())
@@ -60,15 +59,25 @@ class Plugin(bot.ChatManager):
                "points with {2} tickets.\n The pot held {3} tickets!".format(user_id, format(payout, ",d"), tickets, total)
 
     def add_users(self, mem_list):
+        id_list = []
         for m in mem_list:
-            self.c.execute("INSERT OR IGNORE INTO CURRENCY (ID, BALANCE) VALUES ({id}, 0)".format(id=m.id))
-            self.con.commit()
-        self.c.execute("SELECT * FROM CURRENCY")
+            id_list.append([m.id, 0])
+        self.c.execute("BEGIN TRANSACTION")
+        self.c.executemany("INSERT OR IGNORE INTO CURRENCY ('ID', 'BALANCE') VALUES(?, ?)", id_list)
+        self.c.execute("COMMIT")
+        self.con.commit()
 
     def get_bal(self, user_id):
         self.c.execute("SELECT * FROM CURRENCY WHERE ID = {id}".format(id=user_id))
         self.con.commit()
         return int(self.c.fetchone()[1])
+
+    @staticmethod
+    def get_role(message, role_id):
+        for r in message.server.roles:
+            if r.id == role_id:
+                return r
+        return None
 
     def update_bal(self, user_id, bal):
         self.c.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {bal} WHERE ID = {id}".format(bal=bal, id=user_id))
@@ -76,8 +85,16 @@ class Plugin(bot.ChatManager):
 
     def check_input(self, message, *args):
         bal = self.get_bal(message.author.id)
+        short_hand = {"k": 10**3, "m": 10**6, "b": 10**9, "t": 10**12, "q": 10**15}
         try:
-            input = int(args[0][0])
+            arg = args[0][0]
+            if arg.lower() == "all": return bal
+            if arg[-1:].lower() in ["k", "m", "b", "t", "q"]:
+                input = int(arg[:-1])
+                suffix = arg[-1:].lower()
+                input *= short_hand[suffix]
+            else:
+                input = int(arg)
             if input <= 0:
                 return "You can't offer nothing!"
             elif input > bal:
@@ -89,18 +106,18 @@ class Plugin(bot.ChatManager):
     async def cmd_bal(self, message, *_):
         """
         Usage:
-                !command [params]
+                !bal
 
-        This describes what the command does.
+        Displays your balance.
         """
         await self.cmd_balance(message)
 
     async def cmd_balance(self, message, *_):
         """
         Usage:
-                !command [params]
+                !balance
 
-        This describes what the command does.
+        Displays your balance.
         """
         bal = self.get_bal(message.author.id)
         await self.bot.send_msg(message.channel, "Hello, <@{0}>! You currently have __**{1}**__ points.".format(message.author.id, format(bal, ",d")))
@@ -108,9 +125,9 @@ class Plugin(bot.ChatManager):
     async def cmd_buy(self, message, *args):
         """
         Usage:
-                !command [params]
+                !buy <tickets>
 
-        This describes what the command does.
+        Purchases a specified number of tickets for the next lottery.
         """
         tickets = self.check_input(message, args[0])
         if type(tickets) is str:  await self.bot.send_msg(message.channel,  tickets)
@@ -124,9 +141,10 @@ class Plugin(bot.ChatManager):
     async def cmd_give(self, message, *args):
         """
         Usage:
-                !command [params]
+                !give <amount> <@user> 
 
-        This describes what the command does.
+        Gives a user some points from your balance.
+        Consider it a gift and don't expect to get it back.
         """
         try:
             user_id = int(args[0][1].lstrip("<!@").rstrip(">"))
@@ -142,9 +160,9 @@ class Plugin(bot.ChatManager):
     async def cmd_lottery(self, message, *_):
         """
         Usage:
-                !command [params]
+                !lottery
 
-        This describes what the command does.
+        Displays the jackpot and time until next draw.
         """
         time = self.next_draw - datetime.now()
         minutes = int(time.total_seconds()/60)
@@ -156,30 +174,31 @@ class Plugin(bot.ChatManager):
     async def cmd_leaderboard(self, message, *_):
         """
         Usage:
-                !command [params]
+                !leaderboard
 
-        This describes what the command does.
+        Displays the 10 users with the highest balance on the server.
         """
         self.c.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
         leaders = self.c.fetchall()
         output = "__**LEADERBOARD**__```"
         for l in leaders:
-            member = list(self.bot.servers)[0].get_member(str(l[0]))
+            member = message.server.get_member(str(l[0]))
+            if not member: continue # TODO if a user leaves, they're still in db... clean this up
             name = member.nick
             if not name:  name = member.name
-            output += "{0}\t\t{1}\n".format(name, format(l[1], ",.0f"))
-            await self.bot.send_msg(message.channel, output + "```")
+            output += "{:12s}\t\t{:,.0f}\n".format(name[:12], l[1]) #format(, ",.0f"))
+        await self.bot.send_msg(message.channel, output + "```")
 
     async def cmd_slots(self, message, *args):
         """
         Usage:
-                !command [params]
+                !slots <amount>
 
-        This describes what the command does.
+        Insert some money into the slot machine and give it a spin.
         """
         pay = self.check_input(message, args[0])
         if type(pay) is str:
-            await self.bot.send_msg(message.channel, pay)
+            return await self.bot.send_msg(message.channel, pay)
         wheel = [":white_check_mark:", ":seven:", ":bell:", ":no_entry_sign:",
                  ":large_blue_diamond:", ":moneybag:", ":triangular_flag_on_post:"]
         w1 = random.randrange(0, 6); w2 = random.randrange(0, 6); w3 = random.randrange(0, 6)
@@ -191,9 +210,9 @@ class Plugin(bot.ChatManager):
             for i in range(3):
                 output += wheel[w[i]] + " | "
                 if w[0] == spin[1][0] and i == 2:
-                    output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(int(win+pay), ",d"))
+                    output += "  <@{0}>'s Payout:  __**{1}**__".format(message.author.id, format(win+pay, ",.0f"))
             output += "\n| "
-            await self.bot.send_msg(message.channel, output[:-3])
+        await self.bot.send_msg(message.channel, output[:-3])
 
     def get_payout(self, wheel, bet):
         pay = constants.SLOTS_PAYOUT
@@ -204,6 +223,7 @@ class Plugin(bot.ChatManager):
             winnings *= (float(pay[wheel[1]]) * 0.1)
         else:
             return winnings * -1
+        print(bet)
         winnings -= bet
         return winnings
 
@@ -212,11 +232,14 @@ class Plugin(bot.ChatManager):
         Usage:
                 !bet [ALL | 1K/1M/1B/1T | <number>]
 
-        This describes what the command does.
+        Bets a certain amount of money on a coin toss. Double or nothing!
+        You may input a number, ALL, or K, M, B, T behind a number.
+        K = thousand M = million B = billion T = trillion
+        Be careful when betting ALL. You may lose everything. No take backs!
         """
         pay = self.check_input(message, args[0])
         if type(pay) is str:
-            await self.bot.send_msg(message.channel, pay)
+            return await self.bot.send_msg(message.channel, pay)
         call = random.choice(["heads", "tails"])
         land = random.choice(["heads", "tails"])
         result = "WON"
@@ -226,16 +249,38 @@ class Plugin(bot.ChatManager):
         self.update_bal(message.author.id, pay)
         await self.bot.send_msg(message.channel, "<@{0}> {1}! You now have __**{2}**__ points.".format(message.author.id, result, format(self.get_bal(message.author.id), ",d")))
 
-    async def cmd_rankup(self, message, *_): #has to be awaited.... fit this in somewhere???
+    async def cmd_rankup(self, message, *args):
         """
         Usage:
-                !rankup [params]
+                !rankup [l | list]
 
-        This describes what the command does.
+        Ranks you up to the next highest tier.
+        Use !rankup list or !rankup l to display all the ranks and their costs.
         """
-        role = None
-        for r in message.server.roles:
-            if r.id == "321589674147708928":
-                role = r
-        await self.bot.add_roles(message.author, role)
-        await self.bot.send_msg(message.channel, "Done!")
+        role = message.author.top_role
+        arg = args and args[0] or None
+        error = "There's a problem with the rankup list.\n The feature is currently disabled. Please contact the owner."
+        if len(constants.RANK_COST) != len(constants.RANK_LIST):
+            return await self.bot.send_msg (message.channel, error)
+        elif role.id == constants.RANK_LIST[-1:][0]:
+            return await self.bot.send_msg(message.channel, "You're already the highest rank.")
+        try:
+            if arg is None:
+                index = 0
+                for i in range(len(constants.RANK_LIST)-1):
+                    if role.id == constants.RANK_LIST[i]:
+                        index = i+1
+                        break
+                r = self.get_role(message, constants.RANK_LIST[index])
+                if self.get_bal(message.author.id) < int(constants.RANK_COST[index]): return await self.bot.send_msg(message.channel, "You cannot afford to rank up, yet!")
+                self.update_bal(message.author.id, -int(constants.RANK_COST[index]))
+                await self.bot.add_roles(message.author, r)
+                await self.bot.send_msg(message.channel, "Congratulations! You are now part of the {} rank!\nYou now have **{}** points.".format(r, format(self.get_bal(message.author.id), ",d")))
+            else:
+                output = "__**RANK LIST**__```"
+                for i in range(len(constants.RANK_LIST)):
+                    output += "{:15s}{:,.0f}\n".format(str(self.get_role(message, constants.RANK_LIST[i])), int(constants.RANK_COST[i]))
+                output += "```"
+                await self.bot.send_msg(message.channel, output)
+        except:
+            await self.bot.send_msg(message.channel, error)
