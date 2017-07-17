@@ -41,11 +41,10 @@ class Plugin(bot.ChatManager):
         while True:
             await asyncio.sleep(constants.DRAW_TIME)
             self.next_draw = datetime.now() + timedelta(seconds=constants.DRAW_TIME)
-            await self.bot.send_message(self.bot.get_channel(constants.LOTTERY_CHANNEL), self.draw_lottery())
+            if self.lottery:
+                await self.bot.send_message(self.bot.get_channel(constants.LOTTERY_CHANNEL), self.draw_lottery())
 
     def draw_lottery(self):
-        if not self.lottery:
-            return "__**LOTTERY**__\nNobody bought any tickets."
         user_id = random.choice(self.lottery)
         payout = int(len(self.lottery) * constants.LOTTERY_PRICE * .9)
         tickets = 0

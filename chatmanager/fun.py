@@ -91,7 +91,7 @@ class Plugin(bot.ChatManager):
         if len(args[0]) < 5:
             await self.bot.send_msg(message.channel, "Do it yourself you lazy bum.")
         emote = " {0} ".format(args[0].pop(0))
-        return "{0}{1}{0}".format(emote, emote.join(args[0]))
+        await self.bot.send_msg(message.channel, "{0}{1}{0}".format(emote, emote.join(args[0])))
 
     async def cmd_roll(self, message, *args):
         """
