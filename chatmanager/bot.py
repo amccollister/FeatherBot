@@ -1,11 +1,32 @@
 import constants
 import configparser
+import discord
 
 from textwrap import dedent
 from discord.ext.commands import Bot
 from importlib import import_module
 
 
+class ChatBot(Bot):
+    def __init__(self):
+        super().__init__(constants.PREFIX)
+
+    def run(self):
+        super().run(constants.BOT_TOKEN)
+
+    async def on_ready(self):
+        print("------------")
+        print("Logged in as")
+        print(self.user.name)
+        print(self.user.id)
+        print("------------")
+        await self.change_presence(activity=discord.Game("with my developer"), status="dnd")
+
+    async def on_message(self, message):
+        print("Message from {0.author}: {0.content}".format(message))
+
+
+# Old class to tbe adjust later
 class ChatManager(Bot):
     @staticmethod
     def get_general_commands():
@@ -65,14 +86,28 @@ class ChatManager(Bot):
             if arg in whitelist: return True
             return False
 
-    def __init__(self, command_prefix):
-        super().__init__(command_prefix)
+    def __init__(self):
+        super().__init__(constants.PREFIX)
         self.command_list = self.get_general_commands()
         self.plugin_list = {}
         self.cfg = configparser.ConfigParser()
         self.cfg.read("config/permissions.ini")
         self.disconnect = False
         self.restart = False
+
+    def run(self):
+        super().run(constants.BOT_TOKEN)
+
+    async def on_ready(self):
+        print("------------")
+        print("Logged in as")
+        print(self.user.name)
+        print(self.user.id)
+        print("------------")
+        await self.change_presence(activity=discord.Game("with my developer"), status="dnd")
+
+    async def on_message(self, message):
+        print("Message from {0.author}: {0.content}".format(message))
 
     async def incoming_message(self, message): # TODO check_rights()
         args = message.content.split(" ")

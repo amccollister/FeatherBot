@@ -1,3 +1,4 @@
+import os
 import configparser
 
 cfg = configparser.ConfigParser()
@@ -8,7 +9,7 @@ DISCORD_MSG_LIMIT = 2000
 
 # CHAT CONFIGS
 OWNER_ID = cfg["Owner"]["OwnerID"]
-BOT_TOKEN = cfg["Credentials"]["Token"]
+BOT_TOKEN = os.environ["DISCORD_TOKEN"]
 PLUGINS = cfg["Plugins"]["EnabledPlugins"].split(" ")
 PREFIX = chat["CommandPrefix"]
 MOTD = chat["MOTD"]
