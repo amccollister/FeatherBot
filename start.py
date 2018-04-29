@@ -4,12 +4,11 @@ import time
 import asyncio
 import gc
 
-from chatmanager.bot import ChatBot
-
+from bot import ChatBot
 
 def main():
     bot = ChatBot()
-    bot.load_extension("chatmanager.chat")
+    bot.load_extension("extensions.chat")
     bot.run()
 
 
