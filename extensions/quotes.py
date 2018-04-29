@@ -2,9 +2,38 @@ import sqlite3 as sql
 import random
 
 from datetime import datetime
-from chatmanager import bot
+from discord.ext import commands
+from .. import bot
 
 
+class QuotesCog:
+    #addquote quote undoquote redoquote removequote
+    @commands.command()
+    async def addquote(self, ctx):
+        pass
+
+    @commands.command()
+    async def quote(self, ctx):
+        pass
+
+    @commands.command()
+    async def undoquote(self, ctx):
+        pass
+
+    @commands.command()
+    async def redoquote(self, ctx):
+        pass
+
+    @commands.command()
+    async def removequote(self, ctx):
+        pass
+
+
+def setup(bot):
+    bot.add_cog(QuotesCog())
+
+
+'''
 class Plugin(bot.ChatManager):
     def __init__(self, bot, *_):
         self.con = sql.connect("db/quotes.sqlite", isolation_level=None)
@@ -126,3 +155,4 @@ class Plugin(bot.ChatManager):
             await self.bot.send_msg(message.channel, "{0} **removed** {1}".format(self.get_name(message), self.print_quote(del_quote)))
         except:
             await self.bot.send_msg(message.channel, "I could not find a quote with that ID.")
+'''

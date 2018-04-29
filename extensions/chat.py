@@ -5,10 +5,10 @@ from discord.ext import commands
 class ChatCog:
     """ These are our general chat commands that will always be loaded
     Also, context is always passed: author, guild, channel, me, voice_client"""
+
     @commands.command()
     async def ping(self, ctx):
         await ctx.send("Pong.")
-
 
     @commands.command()
     async def test(self, ctx, arg1, arg2):
@@ -25,6 +25,39 @@ class ChatCog:
         for i in range(size-1, 0, -1):
             output += "{}\n".format(" ".join([arg1 for _ in range(i)]))
         await ctx.send(output)
+
+    # TODO: Figure out how to override the help command
+    #@commands.command()
+    #async def help(self, ctx):
+    #    pass
+
+    @commands.command()
+    async def hello(self, ctx):
+        pass
+
+    @commands.command()
+    async def me(self, ctx):
+        pass
+
+    @commands.command()
+    async def joined(self, ctx):
+        pass
+
+    @commands.command()
+    async def motd(self, ctx):
+        pass
+
+    @commands.command()
+    async def setmotd(self, ctx):
+        pass
+
+    @commands.command()
+    async def disconnect(self, ctx):
+        pass
+
+    @commands.command()
+    async def restart(self, ctx):
+        pass
 
 
 def setup(bot):

@@ -2,9 +2,62 @@ import random
 import string
 import urllib.request
 
-from chatmanager import bot
+from .. import bot
+from discord.ext import commands
 
 
+class FunCog:
+    # coolest choose rps flip 8ball emotetext roll imgur fact joke wiki
+    @commands.command()
+    async def coolest(self, ctx):
+        pass
+
+    @commands.command()
+    async def choose(self, ctx):
+        pass
+
+    @commands.command()
+    async def rps(self, ctx):
+        pass
+
+    @commands.command()
+    async def flip(self, ctx):
+        pass
+
+    @commands.command()
+    async def magic_ball(self):
+        pass
+
+    @commands.command()
+    async def emote_text(self, ctx):
+        pass
+
+    @commands.command()
+    async def roll(self, ctx):
+        pass
+
+    @commands.command()
+    async def imgur(self, ctx):
+        pass
+
+    @commands.command()
+    async def fact(self, ctx):
+        pass
+
+    @commands.command()
+    async def joke(self, ctx):
+        pass
+
+    @commands.command()
+    async def wiki(self, ctx):
+        pass
+
+
+def setup(bot):
+    bot.add_cog(FunCog())
+
+
+'''
 class Plugin(bot.ChatManager):
     def __init__(self, bot):
         self.bot = bot
@@ -175,3 +228,4 @@ class Plugin(bot.ChatManager):
             link = "https://en.wikipedia.org/wiki/" + "_".join(args[0])
         with urllib.request.urlopen(link) as response:
             await self.bot.send_msg(message.channel, response.geturl())
+'''

@@ -5,11 +5,52 @@ import constants
 
 from datetime import timedelta
 from datetime import datetime
-from chatmanager import bot
+from discord.ext import commands
+from .. import bot
 
 #TODO horse race?
 
 
+class CurrencyCog:
+    # bal/balance buy give lottery leaderboard slots bet rankup
+    @commands.command()
+    async def balance(self, ctx):
+        pass
+
+    @commands.command()
+    async def buy(self, ctx):
+        pass
+
+    @commands.command()
+    async def give(self, ctx):
+        pass
+
+    @commands.command()
+    async def lottery(self, ctx):
+        pass
+
+    @commands.command()
+    async def leaderboard(self, ctx):
+        pass
+
+    @commands.command()
+    async def slots(self, ctx):
+        pass
+
+    @commands.command()
+    async def bet(self, ctx):
+        pass
+
+    @commands.command()
+    async def rankup(self, ctx):
+        pass
+
+
+def setup(bot):
+    bot.add_cog(CurrencyCog())
+
+
+'''
 class Plugin(bot.ChatManager):
     def __init__(self, client):
         self.con = sql.connect("db/currency.sqlite", isolation_level=None)
@@ -283,3 +324,4 @@ class Plugin(bot.ChatManager):
                 await self.bot.send_msg(message.channel, output)
         except:
             await self.bot.send_msg(message.channel, error)
+'''

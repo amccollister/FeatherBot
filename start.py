@@ -6,6 +6,7 @@ import gc
 
 from bot import ChatBot
 
+
 def main():
     bot = ChatBot()
     bot.load_extension("extensions.chat")

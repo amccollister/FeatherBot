@@ -4,11 +4,36 @@ import parsedatetime
 
 from datetime import timedelta
 from datetime import datetime
-from chatmanager import bot
+from discord.ext import commands
+from .. import bot
 
 # TODO reminders & remindme inputs
 
 
+class ReminderCog:
+    # remindme checkreminders undoreminder removereminder
+
+    @commands.command()
+    async def remindme(self, ctx):
+        pass
+
+    @commands.command()
+    async def reminders(self, ctx):
+        pass
+
+    @commands.command()
+    async def undoreminder(self, ctx):
+        pass
+
+    @commands.command()
+    async def removereminder(self, ctx):
+        pass
+
+
+def setup(bot):
+    bot.add_cog(ReminderCog())
+
+'''
 class Plugin(bot.ChatManager):
     def __init__(self, bot):
         self.con = sql.connect("db/reminders.sqlite")
@@ -102,3 +127,4 @@ class Plugin(bot.ChatManager):
             self.con.commit()
         else:
             return await self.bot.send_msg(message.channel, "You don't have any reminders with that ID.")
+'''
