@@ -9,11 +9,7 @@ from chatmanager.bot import ChatBot
 
 def main():
     bot = ChatBot()
-
-    @bot.command()
-    async def test(ctx, arg):
-        await ctx.send(arg)
-
+    bot.load_extension("chatmanager.chat")
     bot.run()
 
 
