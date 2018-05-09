@@ -2,7 +2,6 @@ import random
 import string
 import urllib.request
 
-from .. import bot
 from discord.ext import commands
 
 
@@ -10,47 +9,49 @@ class FunCog:
     # coolest choose rps flip 8ball emotetext roll imgur fact joke wiki
     @commands.command()
     async def coolest(self, ctx):
-        pass
+        await ctx.send("{0.author.name} is the coolest.".format(ctx))
 
     @commands.command()
-    async def choose(self, ctx):
-        pass
+    async def choose(self, ctx, *args):
+        await ctx.send("I pick {0}".format(random.choice(args)))
 
     @commands.command()
     async def rps(self, ctx):
-        pass
+        await ctx.send("I'll do this later.")
 
     @commands.command()
     async def flip(self, ctx):
-        pass
+        await ctx.send("I'll do this later.")
 
     @commands.command()
-    async def magic_ball(self):
-        pass
+    async def magic_ball(self, ctx):
+        await ctx.send("I'll do this later.")
 
     @commands.command()
     async def emote_text(self, ctx):
-        pass
+        await ctx.send("I'll do this later.")
 
     @commands.command()
-    async def roll(self, ctx):
-        pass
+    async def roll(self, ctx, arg):
+        roll = arg.split("d")
+        print(roll)
+        await ctx.send("I'll roll {0} {1}-sided die.".format(*roll))
 
     @commands.command()
     async def imgur(self, ctx):
-        pass
+        await ctx.send("I'll do this later.")
 
     @commands.command()
     async def fact(self, ctx):
-        pass
+        await ctx.send("I'll do this later.")
 
     @commands.command()
     async def joke(self, ctx):
-        pass
+        await ctx.send("I'll do this later.")
 
     @commands.command()
     async def wiki(self, ctx):
-        pass
+        await ctx.send("I'll do this later.")
 
 
 def setup(bot):

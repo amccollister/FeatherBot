@@ -9,7 +9,10 @@ from bot import ChatBot
 
 def main():
     bot = ChatBot()
-    bot.load_extension("extensions.chat")
+
+    for plugin in constants.PLUGINS:
+        bot.load_extension("extensions.{}".format(plugin))
+
     bot.run()
 
 

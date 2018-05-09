@@ -3,7 +3,6 @@ import random
 
 from datetime import datetime
 from discord.ext import commands
-from .. import bot
 
 
 class QuotesCog:

@@ -6,7 +6,6 @@ import constants
 from datetime import timedelta
 from datetime import datetime
 from discord.ext import commands
-from .. import bot
 
 #TODO horse race?
 

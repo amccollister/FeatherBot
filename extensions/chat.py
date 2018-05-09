@@ -1,4 +1,4 @@
-import discord
+import random
 from discord.ext import commands
 
 
@@ -6,9 +6,9 @@ class ChatCog:
     """ These are our general chat commands that will always be loaded
     Also, context is always passed: author, guild, channel, me, voice_client"""
 
-    @commands.command()
+    @commands.command(aliases=["bing", "ding"])
     async def ping(self, ctx):
-        await ctx.send("Pong.")
+        await ctx.send(random.choice(["Bong.", "Pong.", "Dong."]))
 
     @commands.command()
     async def test(self, ctx, arg1, arg2):
@@ -27,37 +27,37 @@ class ChatCog:
         await ctx.send(output)
 
     # TODO: Figure out how to override the help command
-    #@commands.command()
-    #async def help(self, ctx):
-    #    pass
+    @commands.command()
+    async def help(self, ctx):
+        await ctx.send("I'll do this later.")
 
     @commands.command()
     async def hello(self, ctx):
-        pass
+        await ctx.send("Hello {0.author.name}!".format(ctx))
 
     @commands.command()
     async def me(self, ctx):
-        pass
+        await ctx.send("You are {0.author} in the {0.channel} channel. \n Remind me to do an actual embed thing.".format(ctx))
 
     @commands.command()
     async def joined(self, ctx):
-        pass
+        await ctx.send("{0.author} joined {0.guild} on {0.author.joined_at}".format(ctx))
 
     @commands.command()
     async def motd(self, ctx):
-        pass
+        await ctx.send("Lol there's no motd.")
 
     @commands.command()
     async def setmotd(self, ctx):
-        pass
+        await ctx.send("Yeah sure it's set.")
 
     @commands.command()
     async def disconnect(self, ctx):
-        pass
+        await ctx.send("You can't kill me.")
 
     @commands.command()
     async def restart(self, ctx):
-        pass
+        await ctx.send("*blinks*")
 
 
 def setup(bot):

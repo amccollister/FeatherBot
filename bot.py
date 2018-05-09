@@ -14,6 +14,7 @@ class ChatBot(Bot):
     # on_command on_command_error on_command_completion
     def __init__(self):
         super().__init__(constants.PREFIX)
+        self.remove_command('help')  # We will be implementing our own.
 
     def run(self):
         super().run(constants.BOT_TOKEN)
