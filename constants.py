@@ -1,5 +1,6 @@
 import os
 import configparser
+# CONSTANTS FROM CONFIG AND PERMISSIONS
 
 cfg = configparser.ConfigParser()
 cfg.read("config/config.ini")
