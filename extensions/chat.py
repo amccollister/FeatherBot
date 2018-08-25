@@ -1,4 +1,5 @@
 import random
+import extensions.utils as util
 from discord.ext import commands
 
 
@@ -6,15 +7,19 @@ class ChatCog:
     """ These are our general chat commands that will always be loaded
     Also, context is always passed: author, guild, channel, me, voice_client"""
 
-    @commands.command(aliases=["bing", "ding"])
+    @commands.command()
     async def ping(self, ctx):
-        await ctx.send(random.choice(["Bong.", "Pong.", "Dong."]))
+        #embed = util.make_embed(ctx, random.choice(["Bong.", "Pong.", "Dong."]))
+        #await ctx.send(embed=embed)
+        # call a send_msg?
+        await util.send(ctx, "Pong.")
 
     @commands.command()
     async def test(self, ctx, arg1, arg2):
-        await ctx.send("I received a test command!\n"
-                       "The first argument was {}\n"
-                       "The second argument was {}".format(arg1, arg2))
+        text = ("I received a test command!\n"
+                "The first argument was **{}**\n"
+                "The second argument was **{}**".format(arg1, arg2))
+        await util.send(ctx, text)
 
     @commands.command()
     async def pyramid(self, ctx, arg1, arg2):
@@ -24,7 +29,7 @@ class ChatCog:
             output += "{}\n".format(" ".join([arg1 for _ in range(i)]))
         for i in range(size-1, 0, -1):
             output += "{}\n".format(" ".join([arg1 for _ in range(i)]))
-        await ctx.send(output)
+        await util.send(ctx, output)
 
     # TODO: Figure out how to override the help command
     @commands.command()
@@ -33,31 +38,38 @@ class ChatCog:
 
     @commands.command()
     async def hello(self, ctx):
-        await ctx.send("Hello {0.author.name}!".format(ctx))
+        text = "Hello {0.author.name}!".format(ctx)
+        await util.send(ctx, text)
 
     @commands.command()
     async def me(self, ctx):
-        await ctx.send("You are {0.author} in the {0.channel} channel. \n Remind me to do an actual embed thing.".format(ctx))
+        text = "You are {0.author} in the {0.channel} channel.".format(ctx)
+        await util.send(ctx, text)
 
     @commands.command()
     async def joined(self, ctx):
-        await ctx.send("{0.author} joined {0.guild} on {0.author.joined_at}".format(ctx))
+        text = "{0.author} joined {0.guild} on {0.author.joined_at}".format(ctx)
+        await util.send(ctx, text)
 
     @commands.command()
     async def motd(self, ctx):
-        await ctx.send("Lol there's no motd.")
+        text = "No MOTD at the moment."
+        await util.send(ctx, text)
 
     @commands.command()
     async def setmotd(self, ctx):
-        await ctx.send("Yeah sure it's set.")
+        text = "Yeah, it's not set at all."
+        await util.send(ctx, text)
 
     @commands.command()
     async def disconnect(self, ctx):
-        await ctx.send("You can't kill me.")
+        text = "You can't kill me."
+        await util.send(ctx, text)
 
     @commands.command()
     async def restart(self, ctx):
-        await ctx.send("*blinks*")
+        text = "*blinks*"
+        await util.send(ctx, text)
 
 
 def setup(bot):

@@ -3,55 +3,67 @@ import string
 import urllib.request
 
 from discord.ext import commands
+import extensions.utils as util
 
 
 class FunCog:
     # coolest choose rps flip 8ball emotetext roll imgur fact joke wiki
     @commands.command()
     async def coolest(self, ctx):
-        await ctx.send("{0.author.name} is the coolest.".format(ctx))
+        text = "{0.author.name} is the coolest.".format(ctx)
+        await util.send(ctx, text)
 
     @commands.command()
     async def choose(self, ctx, *args):
-        await ctx.send("I pick {0}".format(random.choice(args)))
+        text = "I pick {0}".format(random.choice(args))
+        await util.send(ctx, text)
 
     @commands.command()
     async def rps(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
     @commands.command()
     async def flip(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
     @commands.command()
     async def magic_ball(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
     @commands.command()
     async def emote_text(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
     @commands.command()
     async def roll(self, ctx, arg):
         roll = arg.split("d")
         print(roll)
-        await ctx.send("I'll roll {0} {1}-sided die.".format(*roll))
+        text = "I'll roll {0} {1}-sided die.".format(*roll)
+        await util.send(ctx, text)
 
     @commands.command()
     async def imgur(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
     @commands.command()
     async def fact(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
     @commands.command()
     async def joke(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
     @commands.command()
     async def wiki(self, ctx):
-        await ctx.send("I'll do this later.")
+        text = "I'll do this later."
+        await util.send(ctx, text)
 
 
 def setup(bot):

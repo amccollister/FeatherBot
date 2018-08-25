@@ -59,4 +59,3 @@ class ChatBot(Bot):
         if reaction.custom_emoji:
             emoji = ":{}:".format(str(reaction.emoji).split(":")[1])
         await reaction.message.channel.send("{} reacted with {}".format(user, emoji))
-
