@@ -1,3 +1,4 @@
+import re
 import random
 import string
 import urllib.request
@@ -19,8 +20,20 @@ class FunCog:
         await util.send(ctx, text)
 
     @commands.command()
-    async def rps(self, ctx):
-        text = "I'll do this later."
+    async def rps(self, ctx, arg):
+        choice = ["rock", "paper", "scissors"]
+        ai_choice = random.choice(choice)
+        if arg not in choice:
+            text = "That's not a valid choice. Try again."
+            await util.send(ctx, text); return
+        result = choice.index(arg) - choice.index(ai_choice)
+        text = "You chose **{0}**.\nI chose **{1}**.\n".format(arg, ai_choice)
+        if result == -1 or result == 2:
+            text += "You lose!"
+        elif result == 0:
+            text += "We tied. Let's try again."
+        else:
+            text += "You win!"
         await util.send(ctx, text)
 
     @commands.command()
@@ -40,9 +53,26 @@ class FunCog:
 
     @commands.command()
     async def roll(self, ctx, arg):
-        roll = arg.split("d")
-        print(roll)
-        text = "I'll roll {0} {1}-sided die.".format(*roll)
+        roll = re.split("[d+]", arg)
+        total = 0
+        text = "Rolled a "
+        try:
+            if len(roll[0]) > 3 or arg[0] not in string.digits: raise Exception
+            count = int(roll[0])
+            sides = int(roll[1])
+            for i in range(count):
+                r = random.randint(1, sides)
+                total += r
+                text += "{} + ".format(r)
+            if len(roll) > 2:
+                add = int(roll[2])
+                total += add
+                text += "{}".format(add)
+            else:
+                text = text[:-2]
+            text += " for a total of **{}!**".format(total)
+        except:
+            text = "The dice landed on the floor. Please try again!"
         await util.send(ctx, text)
 
     @commands.command()

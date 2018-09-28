@@ -1,4 +1,5 @@
 import random
+import constants
 import extensions.utils as util
 from discord.ext import commands
 
@@ -53,18 +54,20 @@ class ChatCog:
 
     @commands.command()
     async def motd(self, ctx):
-        text = "No MOTD at the moment."
+        text = constants.MOTD
         await util.send(ctx, text)
 
     @commands.command()
-    async def setmotd(self, ctx):
-        text = "Yeah, it's not set at all."
+    async def setmotd(self, ctx, arg):
+        constants.MOTD = arg
+        text = "MOTD has been set to: \n*{}*".format(arg)
         await util.send(ctx, text)
 
     @commands.command()
     async def disconnect(self, ctx):
-        text = "You can't kill me."
+        text = "Shutting down..."
         await util.send(ctx, text)
+        await ctx.bot.close()
 
     @commands.command()
     async def restart(self, ctx):

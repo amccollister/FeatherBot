@@ -12,7 +12,8 @@ import discord
 def make_embed(ctx, text):
     # https://cog-creators.github.io/discord-embed-sandbox/
     # https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#context
-    bot = ctx.bot
+    if len(text) > 1024:
+        text = "Error! The message was too long to deliver. Please shorten the next input."
     embed = discord.Embed()
     embed.set_author(name=ctx.author.name, url="https://github.com/amccollister/FeatherBot", icon_url=ctx.author.avatar_url)
     embed.set_footer(text="FeatherBot v0.0.1")
@@ -21,6 +22,8 @@ def make_embed(ctx, text):
 
 # Make a send_msg() method
 # send message on its own
+
+
 async def send(ctx, text):
     embed = make_embed(ctx, text)
     await ctx.send(embed=embed)
