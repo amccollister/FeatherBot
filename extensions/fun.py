@@ -1,6 +1,7 @@
 import re
 import random
 import string
+import urllib.error
 import urllib.request
 
 from discord.ext import commands
@@ -9,6 +10,17 @@ import extensions.utils as util
 
 class FunCog:
     # coolest choose rps flip 8ball emotetext roll imgur fact joke wiki
+    @commands.command()
+    async def magic8ball(self, ctx, *arg):
+        answers = ["It is certain", "It is decidedly so", "Without a doubt", "Yes definitely", "You may rely on it",
+                   "As I see it, yes", "Most likely", "Very doubtful", "Yes", "Signs point to yes", "Ask again later",
+                   "Reply hazy try again", "Better not tell you now", "Cannot predict it now", "My reply is no",
+                   "Concentrate and ask again", "Don't count on it", "My sources say no", "Outlook not so good"]
+        text = random.choice(answers)
+        if not arg:
+            text = "It's blank. You didn't ask it anything."
+        await util.send(ctx, text)
+
     @commands.command()
     async def coolest(self, ctx):
         text = "{0.author.name} is the coolest.".format(ctx)
@@ -37,18 +49,10 @@ class FunCog:
         await util.send(ctx, text)
 
     @commands.command()
-    async def flip(self, ctx):
-        text = "I'll do this later."
-        await util.send(ctx, text)
-
-    @commands.command()
-    async def magic_ball(self, ctx):
-        text = "I'll do this later."
-        await util.send(ctx, text)
-
-    @commands.command()
-    async def emote_text(self, ctx):
-        text = "I'll do this later."
+    async def emoter(self, ctx, arg1, arg2):
+        emote = " {0} ".format(arg1)
+        sentence = arg2.split(" ")
+        text = "{0}{1}{0}".format(emote, emote.join(sentence))
         await util.send(ctx, text)
 
     @commands.command()
@@ -77,8 +81,22 @@ class FunCog:
 
     @commands.command()
     async def imgur(self, ctx):
-        text = "I'll do this later."
-        await util.send(ctx, text)
+        prefix = "https://i.imgur.com/"
+        chars = string.ascii_letters + string.digits
+        attempts = 1
+        while True:
+            suffix = (random.choice(chars) for x in range(random.choice([5, 7])))
+            link = prefix + "".join(suffix)
+            try:
+                with urllib.request.urlopen(link) as response:
+                    if response.getcode() == 200:
+                        text = "Found {0} after **{1}** attempts.".format(link, attempts)
+                        await util.send(ctx, text, link+".png"); break  # add .png to adjust for proxy_url
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    print("Next attempt")
+                    attempts += 1; continue
+                else: raise
 
     @commands.command()
     async def fact(self, ctx):

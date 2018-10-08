@@ -9,7 +9,7 @@ Chibli#0001
 import discord
 
 
-def make_embed(ctx, text):
+def make_embed(ctx, text, *image):
     # https://cog-creators.github.io/discord-embed-sandbox/
     # https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#context
     if len(text) > 1024:
@@ -18,12 +18,14 @@ def make_embed(ctx, text):
     embed.set_author(name=ctx.author.name, url="https://github.com/amccollister/FeatherBot", icon_url=ctx.author.avatar_url)
     embed.set_footer(text="FeatherBot v0.0.1")
     embed.add_field(name=ctx.command, value=text, inline=True)
+    if image:
+        embed.set_image(url=image[0])
     return embed
 
 # Make a send_msg() method
 # send message on its own
 
 
-async def send(ctx, text):
-    embed = make_embed(ctx, text)
+async def send(ctx, text, *image):
+    embed = make_embed(ctx, text, *image)
     await ctx.send(embed=embed)
