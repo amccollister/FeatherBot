@@ -94,19 +94,8 @@ class FunCog:
                         await util.send(ctx, text, link+".png"); break  # add .png to adjust for proxy_url
             except urllib.error.HTTPError as e:
                 if e.code == 404:
-                    print("Next attempt")
                     attempts += 1; continue
                 else: raise
-
-    @commands.command()
-    async def fact(self, ctx):
-        text = "I'll do this later."
-        await util.send(ctx, text)
-
-    @commands.command()
-    async def joke(self, ctx):
-        text = "I'll do this later."
-        await util.send(ctx, text)
 
     @commands.command()
     async def wiki(self, ctx):

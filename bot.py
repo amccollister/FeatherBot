@@ -50,9 +50,9 @@ class ChatBot(Bot):
 
     async def on_raw_message_edit(self, payload):#before, after):
         print("Data {}".format(payload.data))
-        #user = after.author
-        #if before.content != after.content:
-        #    await after.channel.send("{} changed his message from {} to {}".format(user, before.content, after.content))
+        # user = after.author
+        # if before.content != after.content:
+        # await after.channel.send("{} changed his message from {} to {}".format(user, before.content, after.content))
 
     async def on_reaction_add(self, reaction, user):
         emoji = reaction.emoji
