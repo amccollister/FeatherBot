@@ -1,6 +1,7 @@
 import re
 import random
 import string
+import operator
 import urllib.error
 import urllib.request
 
@@ -9,7 +10,6 @@ import extensions.utils as util
 
 
 class FunCog:
-    # coolest choose rps flip 8ball emotetext roll imgur fact joke wiki
     @commands.command()
     async def magic8ball(self, ctx, *arg):
         answers = ["It is certain", "It is decidedly so", "Without a doubt", "Yes definitely", "You may rely on it",
@@ -98,8 +98,42 @@ class FunCog:
                 else: raise
 
     @commands.command()
-    async def wiki(self, ctx):
-        text = "I'll do this later."
+    async def wiki(self, ctx, *arg):
+        """
+        Usage:
+                !wiki [thing]
+
+        Displays an article for a specific thing based on the parameter.
+        If no arguments are provided, a random link is displayed.
+        """
+        if not arg:
+            link = "https://en.wikipedia.org/wiki/Special:Random"
+        else:
+            link = "https://en.wikipedia.org/wiki/" + str(arg[0]).replace(" ", "_")
+            print("Testing {}".format(link))
+        with urllib.request.urlopen(link) as response:
+            text = response.geturl()
+            await util.send(ctx, text)
+
+    @commands.command()
+    async def math(self, ctx):
+        ops = {"+": operator.add,
+               "-": operator.sub,
+               "*": operator.mul,
+               "/": operator.floordiv}
+        a = random.randint(0, 24)
+        b = random.randint(1, 24)
+        op = random.choice(list(ops.keys()))
+        ans = ops.get(op)(a, b)
+        await util.send(ctx, "What is **{0} {1} {2}**?".format(a, op, b))
+        try:
+            input = await ctx.bot.wait_for("message",
+                                           check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
+                                           timeout=6.0)
+            if input.content == str(ans): text = "That is correct!"
+            else: text = "Incorrect!\nThe answer was **{0}**.".format(ans)
+        except:
+            text = "You took too long!\nThe answer was **{0}**.".format(ans)
         await util.send(ctx, text)
 
 

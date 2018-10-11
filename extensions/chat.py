@@ -1,4 +1,3 @@
-import random
 import constants
 import extensions.utils as util
 from discord.ext import commands
