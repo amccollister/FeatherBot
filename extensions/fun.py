@@ -120,7 +120,8 @@ class FunCog:
         ops = {"+": operator.add,
                "-": operator.sub,
                "*": operator.mul,
-               "/": operator.floordiv}
+               "/": operator.floordiv,
+               "%": operator.mod}
         a = random.randint(0, 24)
         b = random.randint(1, 24)
         op = random.choice(list(ops.keys()))

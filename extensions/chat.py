@@ -34,7 +34,9 @@ class ChatCog:
     # TODO: Figure out how to override the help command
     @commands.command()
     async def help(self, ctx):
-        await ctx.send("I'll do this later.")
+        this = ctx.bot.cogs
+        print(this)
+        await util.send(ctx, ctx.bot.get_cog_commands("ChatCog"))
 
     @commands.command()
     async def hello(self, ctx):

@@ -46,7 +46,8 @@ class ChatBot(Bot):
         print("{0} starting typing in {1} at {2}".format(user, channel, when))
 
     async def on_message_delete(self, message):
-        await message.channel.send("I saw you delete that.")
+        pass
+        #await message.channel.send("I saw you delete that.")
 
     async def on_raw_message_edit(self, payload):#before, after):
         print("Data {}".format(payload.data))
@@ -58,4 +59,4 @@ class ChatBot(Bot):
         emoji = reaction.emoji
         if reaction.custom_emoji:
             emoji = ":{}:".format(str(reaction.emoji).split(":")[1])
-        await reaction.message.channel.send("{} reacted with {}".format(user, emoji))
+        #await reaction.message.channel.send("{} reacted with {}".format(user, emoji))

@@ -6,26 +6,56 @@ import constants
 from datetime import timedelta
 from datetime import datetime
 from discord.ext import commands
-
-#TODO horse race?
-
+import extensions.utils as util
 
 class CurrencyCog:
     # bal/balance buy give lottery leaderboard slots bet rankup
-    @commands.command()
-    async def balance(self, ctx):
-        pass
+    # https://stackoverflow.com/questions/32372353/how-to-create-a-db-file-in-sqlite3-using-a-schema-file-from-within-python
+    def __init__(self, bot):
+        self.con = sql.connect("db/database.db", isolation_level=None)
+        self.cur = self.con.cursor()
+        with open('db/schema.sql') as schema:
+            self.cur.executescript(schema.read())
+        self.con.commit()
+        asyncio.async(self.payout(bot))
 
-    @commands.command()
-    async def buy(self, ctx):
-        pass
+    @asyncio.coroutine
+    async def payout(self, bot):
+        while True:
+            await asyncio.sleep(constants.PAY_TIME)
+            self.add_users(bot.get_all_members())
+            online_users = []
+            for u in bot.get_all_members():
+                if str(u.status) != "offline":
+                    online_users.append([constants.PAYCHECK, u.id])
+            self.cur.execute("BEGIN TRANSACTION")
+            self.cur.executemany("UPDATE CURRENCY SET BALANCE = BALANCE + ? WHERE ID = ?", online_users)
+            self.cur.execute("COMMIT")
+            self.con.commit()
+
+    def add_users(self, mem_list):
+        id_list = []
+        for m in mem_list:
+            id_list.append([m.id, m.name, 0])
+        self.cur.execute("BEGIN TRANSACTION")
+        self.cur.executemany("INSERT OR IGNORE INTO CURRENCY ('ID', 'NAME', 'BALANCE') VALUES(?, ?, ?)", id_list)
+        self.cur.execute("COMMIT")
+        self.con.commit()
+
+    def get_bal(self, user_id):
+        self.cur.execute("SELECT * FROM CURRENCY WHERE ID = {id}".format(id=user_id))
+        self.con.commit()
+        return self.cur.fetchone()[2]
+
+
+    @commands.command(aliases=["bal"])
+    async def balance(self, ctx):
+        bal = self.get_bal(ctx.author.id)
+        text = "Hello **{0}!**\nYour balance is: **{1}**".format(ctx.author.name, format(bal, ",d"))
+        await util.send(ctx, text)
 
     @commands.command()
     async def give(self, ctx):
-        pass
-
-    @commands.command()
-    async def lottery(self, ctx):
         pass
 
     @commands.command()
@@ -40,13 +70,8 @@ class CurrencyCog:
     async def bet(self, ctx):
         pass
 
-    @commands.command()
-    async def rankup(self, ctx):
-        pass
-
-
 def setup(bot):
-    bot.add_cog(CurrencyCog())
+    bot.add_cog(CurrencyCog(bot))
 
 
 '''
