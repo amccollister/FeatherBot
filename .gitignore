@@ -95,3 +95,4 @@ ENV/
 *.sqlite-journal
 config/config.ini
 config/permissions.ini
+*.db
