@@ -15,13 +15,6 @@ class ChatCog:
         await util.send(ctx, "Pong.")
 
     @commands.command()
-    async def test(self, ctx, arg1, arg2):
-        text = ("I received a test command!\n"
-                "The first argument was **{}**\n"
-                "The second argument was **{}**".format(arg1, arg2))
-        await util.send(ctx, text)
-
-    @commands.command()
     async def pyramid(self, ctx, arg1, arg2):
         size = int(arg2)
         output = ""

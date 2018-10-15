@@ -2,36 +2,23 @@ import sqlite3 as sql
 import random
 import asyncio
 import constants
+import discord
+import operator
 
 from datetime import timedelta
 from datetime import datetime
 from discord.ext import commands
 import extensions.utils as util
 
+
 class CurrencyCog:
-    # bal/balance buy give lottery leaderboard slots bet rankup
-    # https://stackoverflow.com/questions/32372353/how-to-create-a-db-file-in-sqlite3-using-a-schema-file-from-within-python
     def __init__(self, bot):
         self.con = sql.connect("db/database.db", isolation_level=None)
         self.cur = self.con.cursor()
         with open('db/schema.sql') as schema:
             self.cur.executescript(schema.read())
+        self.add_users(bot.get_all_members())
         self.con.commit()
-        asyncio.async(self.payout(bot))
-
-    @asyncio.coroutine
-    async def payout(self, bot):
-        while True:
-            await asyncio.sleep(constants.PAY_TIME)
-            self.add_users(bot.get_all_members())
-            online_users = []
-            for u in bot.get_all_members():
-                if str(u.status) != "offline":
-                    online_users.append([constants.PAYCHECK, u.id])
-            self.cur.execute("BEGIN TRANSACTION")
-            self.cur.executemany("UPDATE CURRENCY SET BALANCE = BALANCE + ? WHERE ID = ?", online_users)
-            self.cur.execute("COMMIT")
-            self.con.commit()
 
     def add_users(self, mem_list):
         id_list = []
@@ -47,6 +34,10 @@ class CurrencyCog:
         self.con.commit()
         return self.cur.fetchone()[2]
 
+    def update_bal(self, uid, amt):
+        print("Running update_bal with {} and {}".format(uid, amt))
+        self.cur.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {amt} WHERE ID = {uid}".format(amt=amt, uid=uid))
+        self.con.commit()
 
     @commands.command(aliases=["bal"])
     async def balance(self, ctx):
@@ -55,12 +46,32 @@ class CurrencyCog:
         await util.send(ctx, text)
 
     @commands.command()
-    async def give(self, ctx):
-        pass
+    async def give(self, ctx, user, amount):
+        try:
+            u = await commands.UserConverter().convert(ctx, user)
+            a = int(amount)
+        except commands.errors.BadArgument:
+            return await util.send(ctx, "**ERROR**\nI could not find this user.")
+        except ValueError:
+            return await util.send(ctx, "**ERROR**\nThat is an inappropriate amount.")
+        text = "You gave **{0}** points to {1}".format(a, u.mention)
+        print(ctx.author.id, u.id)
+        self.update_bal(ctx.author.id, a*-1)
+        self.update_bal(u.id, a)
+        await util.send(ctx, text)
 
     @commands.command()
     async def leaderboard(self, ctx):
-        pass
+        self.cur.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
+        leaders = self.cur.fetchall()
+        embed = discord.Embed()
+        embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+        embed.set_footer(text="FeatherBot v0.0.1")
+        embed.add_field(name="leaderboard", value="top 10", inline=False)
+        for i, l in enumerate(leaders):
+            name = l[1]; bal = l[2]
+            embed.add_field(name="{0}. {1}".format(i+1, name), value=bal, inline=True)
+        await util.send_embed(ctx, embed)
 
     @commands.command()
     async def slots(self, ctx):
@@ -69,6 +80,36 @@ class CurrencyCog:
     @commands.command()
     async def bet(self, ctx):
         pass
+
+    @commands.command()
+    async def math(self, ctx):
+        ops = {"+": operator.add, "-": operator.sub, "*": operator.mul, "/": operator.floordiv, "%": operator.mod}
+        a = random.randint(0, 24)
+        b = random.randint(1, 24)
+        op = random.choice(list(ops.keys()))
+        if op in ["+", "-"]: mult = .25
+        elif op in ["/", "%"]: mult = 1
+        else: mult = 1 + ((a+b)/100)
+        mult += (a+b)/1000
+        payout = [-1 * int((2-mult)*constants.PAYCHECK), int(mult*constants.PAYCHECK)]  # 0 is wrong. 1 is correct.
+        ans = ops.get(op)(a, b)
+        correct = False
+        await util.send(ctx, "What is **{0} {1} {2}**?".format(a, op, b))
+        try:
+            answer = await ctx.bot.wait_for("message",
+                                           check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
+                                           timeout=6.0)
+            if answer.content == str(ans):
+                text = "That is correct!\nYou earned **{0}** points!".format(payout[1])
+                correct = True
+            else:
+                text = "Incorrect!\nThe answer was **{0}**.".format(ans)
+        except:
+            text = "You took too long!\nThe answer was **{0}**.".format(ans)
+        if correct: self.update_bal(ctx.author.id, payout[1])
+        else:       self.update_bal(ctx.author.id, payout[0]); text += "\nYou lost **{0}** points!".format(payout[0])
+        await util.send(ctx, text)
+
 
 def setup(bot):
     bot.add_cog(CurrencyCog(bot))
@@ -266,7 +307,9 @@ class Plugin(bot.ChatManager):
         wheel = [":white_check_mark:", ":seven:", ":bell:", ":no_entry_sign:",
                  ":large_blue_diamond:", ":moneybag:", ":triangular_flag_on_post:"]
         w1 = random.randrange(0, 6); w2 = random.randrange(0, 6); w3 = random.randrange(0, 6)
-        spin = [[w1, w2, w3], [(w1+1)%7, (w2+1)%7, (w3+1)%7], [(w1+2)%7, (w2+2)%7, (w3+2)%7]]
+        spin = [[w1, w2, w3], 
+               [(w1+1)%7, (w2+1)%7, (w3+1)%7], 
+               [(w1+2)%7, (w2+2)%7, (w3+2)%7]]
         output = "| "
         win = self.get_payout(spin[1], pay)
         self.update_bal(message.author.id, win)

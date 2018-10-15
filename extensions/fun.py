@@ -1,7 +1,6 @@
 import re
 import random
 import string
-import operator
 import urllib.error
 import urllib.request
 
@@ -114,29 +113,6 @@ class FunCog:
         with urllib.request.urlopen(link) as response:
             text = response.geturl()
             await util.send(ctx, text)
-
-    @commands.command()
-    async def math(self, ctx):
-        ops = {"+": operator.add,
-               "-": operator.sub,
-               "*": operator.mul,
-               "/": operator.floordiv,
-               "%": operator.mod}
-        a = random.randint(0, 24)
-        b = random.randint(1, 24)
-        op = random.choice(list(ops.keys()))
-        ans = ops.get(op)(a, b)
-        await util.send(ctx, "What is **{0} {1} {2}**?".format(a, op, b))
-        try:
-            input = await ctx.bot.wait_for("message",
-                                           check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
-                                           timeout=6.0)
-            if input.content == str(ans): text = "That is correct!"
-            else: text = "Incorrect!\nThe answer was **{0}**.".format(ans)
-        except:
-            text = "You took too long!\nThe answer was **{0}**.".format(ans)
-        await util.send(ctx, text)
-
 
 def setup(bot):
     bot.add_cog(FunCog())
