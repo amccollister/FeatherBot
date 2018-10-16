@@ -30,7 +30,8 @@ class ChatBot(Bot):
             self.load_extension("extensions.{}".format(plugin))
 
     async def on_message(self, message):
-        print("Message from {0.author}: {0.content}".format(message))
+        if message.author.id != self.user.id:
+            print("Message from {0.author}: {0.content}".format(message))
 
         await self.process_commands(message)
 

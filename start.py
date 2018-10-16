@@ -1,9 +1,3 @@
-import constants
-import discord
-import time
-import asyncio
-import gc
-
 from bot import ChatBot
 
 
