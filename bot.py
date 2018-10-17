@@ -25,7 +25,6 @@ class ChatBot(Bot):
         print(self.user.name)
         print(self.user.id)
         print("------------")
-        await self.change_presence(activity=discord.Game("with my developer"), status="dnd")
         for plugin in constants.PLUGINS:
             self.load_extension("extensions.{}".format(plugin))
 

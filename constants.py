@@ -10,7 +10,7 @@ DISCORD_MSG_LIMIT = 2000
 
 # CHAT CONFIGS
 OWNER_ID = cfg["Owner"]["OwnerID"]
-BOT_TOKEN = os.environ["DISCORD_TOKEN"]
+BOT_TOKEN = os.environ.get("DISCORD_TOKEN")
 PLUGINS = cfg["Plugins"]["EnabledPlugins"].split(" ")
 PREFIX = chat["CommandPrefix"]
 WHITELIST = chat["BindToChannels"].split(" ")
