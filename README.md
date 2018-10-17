@@ -1,4 +1,4 @@
 # FeatherBot
 A chat bot for Discord developed as a learning project.
 
-Current Plugins: Fun Quotes Currency Reminders
+Current Plugins: Chat Fun Currency
