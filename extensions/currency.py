@@ -37,6 +37,12 @@ class CurrencyCog:
 
     @commands.command(aliases=["bal"])
     async def balance(self, ctx):
+        """
+        Usage:
+                !balance
+
+        Displays your current points total.
+        """
         bal = self.get_bal(ctx.author.id)
         text = "Hello **{0}!**\nYour balance is: **{1}**".format(ctx.author.name, format(bal, ",d"))
         await util.send(ctx, text)
@@ -63,14 +69,20 @@ class CurrencyCog:
 
     @commands.command()
     async def give(self, ctx, user, amount):
+        """
+        Usage:
+                !give [@user] [points]
+
+        Generously donates some of your points to another user.
+        """
         try:
             u = await commands.UserConverter().convert(ctx, user)
-            a = int(amount)
+            a = self.check_input(ctx, amount)
         except commands.errors.BadArgument:
             return await util.send(ctx, "**ERROR**\nI could not find this user.")
         except ValueError:
             return await util.send(ctx, "**ERROR**\nThat is an inappropriate amount.")
-        text = "You gave **{0}** points to {1}".format(a, u.mention)
+        text = "You gave **{0}** points to {1}".format(format(a, ",d"), u.mention)
         print(ctx.author.id, u.id)
         self.update_bal(ctx.author.id, a*-1)
         self.update_bal(u.id, a)
@@ -78,6 +90,12 @@ class CurrencyCog:
 
     @commands.command()
     async def leaderboard(self, ctx):
+        """
+        Usage:
+                !leaderboard
+
+        Shows the top 10 earners on the server.
+        """
         self.cur.execute("SELECT * FROM CURRENCY ORDER BY BALANCE DESC LIMIT 10")
         leaders = self.cur.fetchall()
         embed = discord.Embed()
@@ -91,6 +109,12 @@ class CurrencyCog:
 
     @commands.command()
     async def slots(self, ctx, amt):
+        """
+        Usage:
+                !slots [bet]
+
+        Spins the slot machine with your bet. Warning: you have a high chance to lose!
+        """
         arg = self.check_input(ctx, amt)
         if type(arg) is str:
             return await util.send(ctx, arg)
@@ -102,9 +126,9 @@ class CurrencyCog:
         w3 = random.randrange(0, 6)
         win = 0
         if w1 == w2 and w2 == w3:
-            win = 10 * (w1+1)
+            win = 5 * w1
         elif w1 == w2 or w2 == w3:
-            win = random.choice([w1, w2, w3]) + 1
+            win = random.choice([w1, w2, w3])
         payout = arg * win
         spin = [[w1, w2, w3],
                 [(w1 + 1) % 7, (w2 + 1) % 7, (w3 + 1) % 7],
@@ -120,10 +144,16 @@ class CurrencyCog:
 
     @commands.command()
     async def bet(self, ctx, amt):
+        """
+        Usage:
+                !bet [points]
+
+        Flips a coin. If it's tails, you win double your money!
+        """
         arg = self.check_input(ctx, amt)
         if type(arg) is str:
             return await util.send(ctx, arg)
-        land = random.choice([0, 1, 2, 3])
+        land = random.choice([0, 1])
         result = "WON"
         if land == 0:
             arg *= -1
@@ -135,6 +165,13 @@ class CurrencyCog:
 
     @commands.command()
     async def math(self, ctx):
+        """
+        Usage:
+                !math
+
+        Gives you a random math question to solve.
+        You only have 6 seconds to answer so be fast!
+        """
         ops = {"plus": operator.add,
                "minus": operator.sub,
                "times": operator.mul,

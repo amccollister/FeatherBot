@@ -11,6 +11,12 @@ import extensions.utils as util
 class FunCog:
     @commands.command()
     async def magic8ball(self, ctx, *arg):
+        """
+        Usage:
+                !magic8ball [question]
+
+        Ask the magic 8 ball a question and see what wisdom it imparts on you.
+        """
         answers = ["It is certain", "It is decidedly so", "Without a doubt", "Yes definitely", "You may rely on it",
                    "As I see it, yes", "Most likely", "Very doubtful", "Yes", "Signs point to yes", "Ask again later",
                    "Reply hazy try again", "Better not tell you now", "Cannot predict it now", "My reply is no",
@@ -22,16 +28,34 @@ class FunCog:
 
     @commands.command()
     async def coolest(self, ctx):
+        """
+        Usage:
+                !coolest
+
+        Tells you the coolest person on the server.
+        """
         text = "{0.author.name} is the coolest.".format(ctx)
         await util.send(ctx, text)
 
     @commands.command()
     async def choose(self, ctx, *args):
+        """
+        Usage:
+                !choose [item1] [item2] <item3> ... etc
+
+        Can't make a decision? The bot will randomly choose one for you.
+        """
         text = "I pick {0}".format(random.choice(args))
         await util.send(ctx, text)
 
     @commands.command()
     async def rps(self, ctx, arg):
+        """
+        Usage:
+                !rps [rock|paper|scissors]
+
+        Play a game of rock, paper, scissors with the bot. It doesn't cheat, usually.
+        """
         choice = ["rock", "paper", "scissors"]
         ai_choice = random.choice(choice)
         if arg not in choice:
@@ -49,6 +73,13 @@ class FunCog:
 
     @commands.command()
     async def emoter(self, ctx, arg1, arg2):
+        """
+        Usage:
+                !emoter [emote] [sentence]
+
+        Puts an emote in between every word in your sentence.
+        :Clap: For :Clap: when :Clap: you :Clap: want :Clap: to :Clap: make :Clap: a :Clap: point! :Clap:
+        """
         emote = " {0} ".format(arg1)
         sentence = arg2.split(" ")
         text = "{0}{1}{0}".format(emote, emote.join(sentence))
@@ -56,6 +87,13 @@ class FunCog:
 
     @commands.command()
     async def roll(self, ctx, arg):
+        """
+        Usage:
+                !roll [dice+modifiers]
+
+        Roll some dice and see the output.
+        Some valid inputs are: 1d20, 2d10+10, 4d100, 10d50+20 or any similar format.
+        """
         roll = re.split("[d+]", arg)
         total = 0
         text = "Rolled a "
@@ -80,6 +118,13 @@ class FunCog:
 
     @commands.command()
     async def imgur(self, ctx):
+        """
+        Usage:
+                !imgur
+
+        Grabs a random image off of imgur.
+        WARNING: Some of the images may be incredibly NSFW. Use at your own risk.
+        """
         prefix = "https://i.imgur.com/"
         chars = string.ascii_letters + string.digits
         attempts = 1
@@ -100,7 +145,7 @@ class FunCog:
     async def wiki(self, ctx, *arg):
         """
         Usage:
-                !wiki [thing]
+                !wiki <thing>
 
         Displays an article for a specific thing based on the parameter.
         If no arguments are provided, a random link is displayed.
