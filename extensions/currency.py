@@ -4,6 +4,10 @@ import constants
 import discord
 import operator
 
+import json
+import urllib.request
+import urllib.error
+
 from discord.ext import commands
 import extensions.utils as util
 
@@ -35,7 +39,44 @@ class CurrencyCog:
         self.cur.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {amt} WHERE ID = {uid}".format(amt=amt, uid=uid))
         self.con.commit()
 
-    @commands.command(aliases=["bal"])
+    def get_price(self, crypto):
+        link = "https://api.cryptonator.com/api/ticker/{}-usd".format(crypto)
+        with urllib.request.urlopen(link) as response:
+            payload = json.loads(response.read())
+        price = -1
+        if payload["success"]:
+            price = float(payload["ticker"]["price"]) * 100
+        return int(price)
+
+    def buy_crypto(self, user, amt, coin, total):
+        self.cur.execute("SELECT * FROM CRYPTO WHERE ID = {uid} AND COIN = \"{coin}\"".format(uid=user.id, coin=coin))
+        wallet = self.cur.fetchall()
+        if self.get_bal(user.id) < total:
+            return "insufficient funds"
+        if wallet:
+            self.cur.execute("UPDATE CRYPTO SET AMOUNT=AMOUNT+{amt} WHERE ID={uid} and COIN=\"{coin}\""
+                             .format(amt=amt, coin=coin, uid=user.id))
+        else:
+            self.cur.execute("INSERT INTO CRYPTO VALUES({}, \"{}\", {}, \"{}\")".format(user.id, user, amt, coin))
+        self.update_bal(user.id, total*-1)
+        self.con.commit()
+        return True
+
+    def sell_crypto(self, user, amt, coin, total):
+        self.cur.execute("SELECT * FROM CRYPTO WHERE ID = {uid} AND COIN = \"{coin}\"".format(uid=user.id, coin=coin))
+        wallet = self.cur.fetchone()
+        if not wallet or wallet[2] < amt:
+            return "insufficient coin balance"
+        self.update_bal(user.id, total)
+        if wallet[2] == amt:
+            self.cur.execute("DELETE FROM CRYPTO WHERE ID={uid} and COIN=\"{coin}\"".format(coin=coin, uid=user.id))
+        else:
+            self.cur.execute("UPDATE CRYPTO SET AMOUNT=AMOUNT-{amt} WHERE ID={uid} and COIN=\"{coin}\""
+                             .format(amt=amt, coin=coin, uid=user.id))
+        self.con.commit()
+        return True
+
+    @commands.command(aliases=["bal", "points", "pts"])
     async def balance(self, ctx):
         """
         Usage:
@@ -43,8 +84,12 @@ class CurrencyCog:
 
         Displays your current points total.
         """
-        bal = self.get_bal(ctx.author.id)
-        text = "Hello **{0}!**\nYour balance is: **{1}**".format(ctx.author.name, format(bal, ",d"))
+        bal = format(self.get_bal(ctx.author.id), ",d")
+        text = "__Your Wallet__\n**{}** points\n".format(bal)
+        self.cur.execute("SELECT * FROM CRYPTO WHERE ID = {}".format(ctx.author.id))
+        coins = self.cur.fetchall()
+        for c in coins:
+            text += "**{0}** {1}\n".format(c[2], c[3])
         await util.send(ctx, text)
 
     def check_input(self, ctx, arg):
@@ -104,7 +149,7 @@ class CurrencyCog:
         embed.add_field(name="leaderboard", value="top 10", inline=False)
         for i, l in enumerate(leaders):
             name = l[1]; bal = l[2]
-            embed.add_field(name="{0}. {1}".format(i+1, name), value=format(bal, ",d"), inline=True)
+            embed.add_field(name="{0}. {1}".format(i+1, name), value=format(bal, ",d"), inline=False)
         await util.send_embed(ctx, embed)
 
     @commands.command()
@@ -202,6 +247,58 @@ class CurrencyCog:
         if correct: self.update_bal(ctx.author.id, payout[1])
         else:       self.update_bal(ctx.author.id, payout[0]); text += "\nYou lost **{0}** points!".format(payout[0])
         await util.send(ctx, text)
+
+    @commands.command()
+    async def crypto(self, ctx, *args):
+        currencies = args or ["BTC", "ETH", "XRP", "EOS", "LTC"]
+        if len(currencies) > 5:
+            await util.send(ctx, "Please use less than 5 currencies in one list.")
+            return None
+
+        output = ""
+        for c in currencies:
+            price = self.get_price(c)
+            output += "**{0}** \\|\\| {1} points\n".format(c, int(price))
+        await util.send(ctx, output)
+
+    @commands.command()
+    async def buy(self, ctx, amt, coin):
+        coin = coin.upper()
+        try:
+            amount = float(amt)
+            if amount < 0:
+                raise
+        except:
+            return await util.send(ctx, "Invalid amount!")
+        price = self.get_price(coin)
+        total = int(price * float(amt))
+        result = self.buy_crypto(ctx.author, amt, coin, total)
+        if type(result) == str:
+            await util.send(ctx, "Transaction failed due to **{}**. Please try again.".format(result))
+        else:
+            await util.send(ctx, "Purchased {} units of {} for {} points".format(amt, coin, total))
+
+    @commands.command()
+    async def sell(self, ctx, amt, coin):
+        coin = coin.upper()
+        try:
+            amount = float(amt)
+            if amount < 0:
+                raise
+        except:
+            return await util.send(ctx, "Invalid amount!")
+        price = self.get_price(coin)
+        total = int(price * float(amt))
+        result = self.sell_crypto(ctx.author, amount, coin, total)
+        if type(result) == str:
+            await util.send(ctx, "Transaction failed due to **{}**. Please try again.".format(result))
+        else:
+            await util.send(ctx, "Sold {} units of {} for {} points".format(amt, coin, total))
+
+    @commands.command()
+    async def dev_pts(self, ctx, amt):
+        self.update_bal(ctx.author.id, int(amt))
+        await util.send(ctx, "Given {} points".format(amt))
 
 
 def setup(bot):

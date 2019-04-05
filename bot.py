@@ -28,14 +28,15 @@ class ChatBot(Bot):
         for plugin in constants.PLUGINS:
             self.load_extension("extensions.{}".format(plugin))
 
-    async def on_message(self, message):
-        str_id = str(message.channel.id)
-        if message.author.id != self.user.id:
-            print("Message from {0.author}: {0.content}".format(message))
+    async def on_message(self, ctx):
+        str_id = str(ctx.channel.id)
+        if ctx.author.id != self.user.id:
+            #await ctx.author.send("DevBot sees you messaging")
+            print("Message from {0.author}: {0.content}".format(ctx))
         if constants.WHITELIST and str_id in constants.WHITELIST:
-            await self.process_commands(message)
+            await self.process_commands(ctx)
         elif str_id not in constants.BLACKLIST:
-            await self.process_commands(message)
+            await self.process_commands(ctx)
 
     async def on_error(self, event, *args, **kwargs):
         print(sys.exc_info())

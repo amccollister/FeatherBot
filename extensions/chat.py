@@ -119,6 +119,11 @@ class ChatCog:
         text = "Restarting..."
         await util.send(ctx, text)
 
+    @commands.command()
+    async def dm_owner(self, ctx):
+        owner = ctx.bot.get_user(ctx.guild.owner_id)
+        await owner.send("I was instructed to message you")
+
 
 def setup(bot):
     bot.add_cog(ChatCog())
