@@ -8,7 +8,7 @@ from discord.ext import commands
 import extensions.utils as util
 
 
-class FunCog:
+class FunCog(commands.Cog):
     @commands.command()
     async def magic8ball(self, ctx, *arg):
         """

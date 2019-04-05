@@ -14,7 +14,7 @@ from discord.ext import commands
 import extensions.utils as util
 
 
-class CurrencyCog:
+class CurrencyCog(commands.Cog):
     def __init__(self, bot):
         self.con = sql.connect("db/database.db", isolation_level=None)
         self.cur = self.con.cursor()
@@ -277,7 +277,7 @@ class CurrencyCog:
                 time = .5 if time < .5 else time
                 pay = int(payout[payload["difficulty"]]/time)
                 self.update_bal(ctx.author.id, pay)
-                response = "Correct! You took **{0}** seconds and earned a total of **{1}** points!".format(time, pay)
+                response = "Correct! You took **{0}** seconds and earned a total of **{1}** points!".format(round(time, 2), pay)
             else:
                 self.update_bal(ctx.author.id, loss)
                 response = "Incorrect! It was **{0}**. You lost **{1}** points.".format(letter, int(loss)*-1)

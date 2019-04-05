@@ -3,7 +3,7 @@ import extensions.utils as util
 from discord.ext import commands
 
 
-class ChatCog:
+class ChatCog(commands.Cog):
     @commands.command()
     async def ping(self, ctx):
         """
