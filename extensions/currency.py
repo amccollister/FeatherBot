@@ -271,7 +271,7 @@ class CurrencyCog(commands.Cog):
             answer = await ctx.bot.wait_for("message",
                                             check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
                                             timeout=20.0)
-            if answer.content == letter:
+            if answer.content.upper() == letter:
                 end = datetime.now() - start
                 time = end.seconds + end.microseconds/10**6
                 time = .5 if time < .5 else time
