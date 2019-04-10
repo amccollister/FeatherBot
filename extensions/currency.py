@@ -1,18 +1,20 @@
 import sqlite3 as sql
+import extensions.utils as util
 import random
 import constants
 import discord
 import operator
 import re
-from datetime import datetime
+import string
+
 
 import json
 import html
 import urllib.request
 import urllib.error
 
+from datetime import datetime
 from discord.ext import commands
-import extensions.utils as util
 
 
 class CurrencyCog(commands.Cog):
@@ -290,12 +292,27 @@ class CurrencyCog(commands.Cog):
     @commands.command()
     async def jeopardy(self, ctx):
         link = "http://jservice.io/api/random"
-        with urllib.request.urlopen(link) as response:
-            payload = json.loads(response.read())[0]
-            answer = re.sub(re.compile("<.*?>"), "", payload["answer"])
-            clue = [payload["value"], payload["category"]["title"], payload["question"], answer]
+        chars = string.ascii_letters + string.digits
+        clue = [None]
+        while None in clue:
+            with urllib.request.urlopen(link) as response:
+                payload = json.loads(response.read())[0]
+                ans = re.sub(re.compile("<.*?>"), "", payload["answer"])
+                hint = ''.join([(lambda x: x if x not in chars or random.randint(1,10) in range(6) else "\\_")(x) for x in ans])
+                clue = [payload["value"], payload["category"]["title"], payload["question"], hint]
         text = "**Difficulty: **{}\n**Category: **{}\n**Question: **{}\n\n**Answer: **{}\n".format(*clue)
         await util.send(ctx, text)
+        try:
+            answer = await ctx.bot.wait_for("message",
+                                            check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
+                                            timeout=30.0)
+            if answer.content.lower() != ans.lower():
+                await util.send(ctx, "Incorrect! The answer was \"{}\"".format(ans))
+            else:
+                self.update_bal(ctx.author.id, int(payload["value"]))
+                await util.send(ctx, "Correct! You just earned **{}** points!".format(payload["value"]))
+        except Exception as e:
+            await util.send(ctx, "You took too long or an error: {}! The answer was \"{}\"".format(e, ans))
 
     @commands.command()
     async def crypto(self, ctx, *args):
