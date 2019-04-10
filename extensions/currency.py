@@ -3,6 +3,7 @@ import random
 import constants
 import discord
 import operator
+import re
 from datetime import datetime
 
 import json
@@ -256,7 +257,7 @@ class CurrencyCog(commands.Cog):
         link = "https://opentdb.com/api.php?amount=1&type=multiple"
         payout = {"easy": 2000, "medium": 4000, "hard": 6000}
         with urllib.request.urlopen(link) as response:
-            payload = json.loads(response.read().decode())["results"][0]
+            payload = json.loads(response.read())["results"][0]
         ans = [html.unescape(x) for x in payload["incorrect_answers"] + [payload["correct_answer"]]]
         output = [payload["category"], payload["difficulty"], html.unescape(payload["question"]), random.shuffle(ans)]
         loss = payout[payload["difficulty"]]/-20
@@ -285,6 +286,16 @@ class CurrencyCog(commands.Cog):
             response = "You took too long!\nThe answer was **{0}**. You lost **{1}** points".format(letter, int(loss)*-1)
             self.update_bal(ctx.author.id, loss)
         await util.send(ctx, response)
+
+    @commands.command()
+    async def jeopardy(self, ctx):
+        link = "http://jservice.io/api/random"
+        with urllib.request.urlopen(link) as response:
+            payload = json.loads(response.read())[0]
+            answer = re.sub(re.compile("<.*?>"), "", payload["answer"])
+            clue = [payload["value"], payload["category"]["title"], payload["question"], answer]
+        text = "**Difficulty: **{}\n**Category: **{}\n**Question: **{}\n\n**Answer: **{}\n".format(*clue)
+        await util.send(ctx, text)
 
     @commands.command()
     async def crypto(self, ctx, *args):
