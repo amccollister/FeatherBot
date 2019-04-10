@@ -297,7 +297,7 @@ class CurrencyCog(commands.Cog):
         while None in clue:
             with urllib.request.urlopen(link) as response:
                 payload = json.loads(response.read())[0]
-                ans = re.sub(re.compile("<.*?\\>"), "", payload["answer"])
+                ans = re.sub(re.compile("<.*?\>"), "", payload["answer"])
                 hint = ''.join([(lambda x: x if x not in chars or random.randint(1,10) in range(6) else "\\_")(x) for x in ans])
                 clue = [payload["value"], payload["category"]["title"], payload["question"], hint]
         text = "**Difficulty: **{}\n**Category: **{}\n**Question: **{}\n\n**Answer: **{}\n".format(*clue)
