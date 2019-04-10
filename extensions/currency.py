@@ -297,7 +297,7 @@ class CurrencyCog(commands.Cog):
         while None in clue:
             with urllib.request.urlopen(link) as response:
                 payload = json.loads(response.read())[0]
-                ans = re.sub(re.compile("<.*?>"), "", payload["answer"])
+                ans = re.sub(re.compile("<.*?\\>"), "", payload["answer"])
                 hint = ''.join([(lambda x: x if x not in chars or random.randint(1,10) in range(6) else "\\_")(x) for x in ans])
                 clue = [payload["value"], payload["category"]["title"], payload["question"], hint]
         text = "**Difficulty: **{}\n**Category: **{}\n**Question: **{}\n\n**Answer: **{}\n".format(*clue)
@@ -307,12 +307,14 @@ class CurrencyCog(commands.Cog):
                                             check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
                                             timeout=30.0)
             if answer.content.lower() != ans.lower():
+                print(answer.content.lower(), ans.lower())
                 await util.send(ctx, "Incorrect! The answer was \"{}\"".format(ans))
             else:
                 self.update_bal(ctx.author.id, int(payload["value"]))
                 await util.send(ctx, "Correct! You just earned **{}** points!".format(payload["value"]))
         except Exception as e:
-            await util.send(ctx, "You took too long or an error: {}! The answer was \"{}\"".format(e, ans))
+            print("There was an error! {}".format(e))
+            await util.send(ctx, "You took too long! The answer was \"{}\"".format(ans))
 
     @commands.command()
     async def crypto(self, ctx, *args):
