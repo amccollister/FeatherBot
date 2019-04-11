@@ -266,7 +266,7 @@ class CurrencyCog(commands.Cog):
         link = "https://opentdb.com/api.php?amount=1&type=multiple"
         payout = {"easy": 2000, "medium": 4000, "hard": 6000}
         with urllib.request.urlopen(link) as response:
-            payload = json.loads(response.read())["results"][0]
+            payload = json.loads(response.read().decode("utf-8"))["results"][0]
         ans = [html.unescape(x) for x in payload["incorrect_answers"] + [payload["correct_answer"]]]
         output = [payload["category"], payload["difficulty"], html.unescape(payload["question"]), random.shuffle(ans)]
         loss = payout[payload["difficulty"]]/-20
@@ -310,7 +310,7 @@ class CurrencyCog(commands.Cog):
         clue = [None]
         while None in clue:
             with urllib.request.urlopen(link) as response:
-                payload = json.loads(response.read())[0]
+                payload = json.loads(response.read().decode("utf-8"))[0]
                 ans = re.sub(re.compile('<.*?>'), "", payload["answer"]).replace("\\", "") 
                 hint = ''.join([(lambda x: x if x not in chars or random.randint(1,10) in range(4) else "\\_")(x) for x in ans])
                 clue = [payload["value"], payload["category"]["title"], payload["question"], hint]
