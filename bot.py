@@ -5,9 +5,6 @@ from discord.ext.commands import Bot
 
 
 class ChatBot(Bot):
-    # on_member_join on_member_remove
-    # on_member_update on_member_ban on_guild_join
-    # on_command on_command_error on_command_completion
     def __init__(self):
         super().__init__(constants.PREFIX)
         self.remove_command('help')  # We will be implementing our own.

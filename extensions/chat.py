@@ -63,28 +63,6 @@ class ChatCog(commands.Cog):
                     await util.send(ctx, "That plugin does not exist or is not currently installed.")
 
     @commands.command()
-    async def hello(self, ctx):
-        """
-        Usage:
-                !hello
-
-        Says hello to the bot!
-        """
-        text = "Hello {0.author.name}!".format(ctx)
-        await util.send(ctx, text)
-
-    @commands.command()
-    async def me(self, ctx):
-        """
-        Usage:
-                !me
-
-        Gives you some info on who you are and your current location in the server.
-        """
-        text = "You are {0.author} in the {0.channel} channel.".format(ctx)
-        await util.send(ctx, text)
-
-    @commands.command()
     async def joined(self, ctx):
         """
         Usage:
@@ -94,34 +72,6 @@ class ChatCog(commands.Cog):
         """
         text = "{0.author} joined {0.guild} on {0.author.joined_at}".format(ctx)
         await util.send(ctx, text)
-
-    @commands.command()
-    async def disconnect(self, ctx):
-        """
-        Usage:
-                !disconnect
-
-        Puts the bot to sleep... temporarily I hope.
-        """
-        text = "Shutting down..."
-        await util.send(ctx, text)
-        await ctx.bot.close()
-
-    @commands.command()
-    async def restart(self, ctx):
-        """
-        Usage:
-                !restart
-
-        Restarts the bot.
-        """
-        text = "Restarting..."
-        await util.send(ctx, text)
-
-    @commands.command()
-    async def dm_owner(self, ctx):
-        owner = ctx.bot.get_user(ctx.guild.owner_id)
-        await owner.send("I was instructed to message you")
 
 
 def setup(bot):

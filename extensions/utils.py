@@ -8,7 +8,7 @@ def make_embed(ctx, text, *image):
         text = "Error! The message was too long to deliver. Please shorten the next input."
     embed = discord.Embed()
     embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
-    embed.set_footer(text="FeatherBot v0.0.1")
+    embed.set_footer(text="FeatherBot v1")
     embed.add_field(name=ctx.command, value=text, inline=True)
     if image:
         embed.set_image(url=image[0])

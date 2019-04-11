@@ -256,6 +256,13 @@ class CurrencyCog(commands.Cog):
 
     @commands.command()
     async def trivia(self, ctx):
+        """
+        Usage:
+                !trivia
+
+        Gives you a trivia question to answer within 20 seconds!
+        The faster you answer, the more points you get.
+        """
         link = "https://opentdb.com/api.php?amount=1&type=multiple"
         payout = {"easy": 2000, "medium": 4000, "hard": 6000}
         with urllib.request.urlopen(link) as response:
@@ -291,13 +298,20 @@ class CurrencyCog(commands.Cog):
 
     @commands.command()
     async def jeopardy(self, ctx):
+        """
+        Usage:
+                !jeopardy
+
+        Gives you a jeopardy question to answer within 30 seconds.
+        It must match the clue exactly with all punctuation and spaces.
+        """
         link = "http://jservice.io/api/random"
         chars = string.ascii_letters + string.digits
         clue = [None]
         while None in clue:
             with urllib.request.urlopen(link) as response:
                 payload = json.loads(response.read())[0]
-                ans = re.sub(re.compile('<.*?>'), "", payload["answer"]).replace("\\", "")  # apostrophe fix?
+                ans = re.sub(re.compile('<.*?>'), "", payload["answer"]).replace("\\", "") 
                 hint = ''.join([(lambda x: x if x not in chars or random.randint(1,10) in range(4) else "\\_")(x) for x in ans])
                 clue = [payload["value"], payload["category"]["title"], payload["question"], hint]
         text = "**Difficulty: **{}\n**Category: **{}\n**Question: **{}\n\n**Answer: **{}\n".format(*clue)
@@ -307,7 +321,6 @@ class CurrencyCog(commands.Cog):
                                             check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
                                             timeout=30.0)
             if answer.content.lower() != ans.lower():
-                print(answer.content.lower(), ans.lower())
                 await util.send(ctx, "Incorrect! The answer was \"{}\"".format(ans))
             else:
                 self.update_bal(ctx.author.id, int(payload["value"]))
@@ -318,6 +331,12 @@ class CurrencyCog(commands.Cog):
 
     @commands.command()
     async def crypto(self, ctx, *args):
+        """
+        Usage:
+                !crypto <currency1, <currency2>, ...>
+
+        Displays information on up to 5 different crypto currencies.
+        """
         currencies = args or ["BTC", "ETH", "XRP", "EOS", "LTC"]
         if len(currencies) > 5:
             await util.send(ctx, "Please use less than 5 currencies in one list.")
@@ -331,6 +350,12 @@ class CurrencyCog(commands.Cog):
 
     @commands.command()
     async def buy(self, ctx, amt, coin):
+        """
+        Usage:
+                !buy [amount] [currency]
+
+        Attempts to purchase an amount of crypto using points.
+        """
         coin = coin.upper()
         try:
             amount = float(amt)
@@ -348,6 +373,12 @@ class CurrencyCog(commands.Cog):
 
     @commands.command()
     async def sell(self, ctx, amt, coin):
+        """
+        Usage:
+                !sell [amount] [currency]
+
+        Attempts to sell an amount of crypto to earn points.
+        """
         coin = coin.upper()
         try:
             amount = float(amt)
