@@ -1,14 +1,23 @@
 import sqlite3 as sql
+import extensions.utils as util
 import random
 import constants
 import discord
 import operator
+import re
+import string
 
+
+import json
+import html
+import urllib.request
+import urllib.error
+
+from datetime import datetime
 from discord.ext import commands
-import extensions.utils as util
 
 
-class CurrencyCog:
+class CurrencyCog(commands.Cog):
     def __init__(self, bot):
         self.con = sql.connect("db/database.db", isolation_level=None)
         self.cur = self.con.cursor()
@@ -35,7 +44,44 @@ class CurrencyCog:
         self.cur.execute("UPDATE CURRENCY SET BALANCE = BALANCE + {amt} WHERE ID = {uid}".format(amt=amt, uid=uid))
         self.con.commit()
 
-    @commands.command(aliases=["bal"])
+    def get_price(self, crypto):
+        link = "https://api.cryptonator.com/api/ticker/{}-usd".format(crypto)
+        with urllib.request.urlopen(link) as response:
+            payload = json.loads(response.read())
+        price = -1
+        if payload["success"]:
+            price = float(payload["ticker"]["price"]) * 100
+        return int(price)
+
+    def buy_crypto(self, user, amt, coin, total):
+        self.cur.execute("SELECT * FROM CRYPTO WHERE ID = {uid} AND COIN = \"{coin}\"".format(uid=user.id, coin=coin))
+        wallet = self.cur.fetchall()
+        if self.get_bal(user.id) < total:
+            return "insufficient funds"
+        if wallet:
+            self.cur.execute("UPDATE CRYPTO SET AMOUNT=AMOUNT+{amt} WHERE ID={uid} and COIN=\"{coin}\""
+                             .format(amt=amt, coin=coin, uid=user.id))
+        else:
+            self.cur.execute("INSERT INTO CRYPTO VALUES({}, \"{}\", {}, \"{}\")".format(user.id, user, amt, coin))
+        self.update_bal(user.id, total*-1)
+        self.con.commit()
+        return True
+
+    def sell_crypto(self, user, amt, coin, total):
+        self.cur.execute("SELECT * FROM CRYPTO WHERE ID = {uid} AND COIN = \"{coin}\"".format(uid=user.id, coin=coin))
+        wallet = self.cur.fetchone()
+        if not wallet or wallet[2] < amt:
+            return "insufficient coin balance"
+        self.update_bal(user.id, total)
+        if wallet[2] == amt:
+            self.cur.execute("DELETE FROM CRYPTO WHERE ID={uid} and COIN=\"{coin}\"".format(coin=coin, uid=user.id))
+        else:
+            self.cur.execute("UPDATE CRYPTO SET AMOUNT=AMOUNT-{amt} WHERE ID={uid} and COIN=\"{coin}\""
+                             .format(amt=amt, coin=coin, uid=user.id))
+        self.con.commit()
+        return True
+
+    @commands.command(aliases=["bal", "points", "pts"])
     async def balance(self, ctx):
         """
         Usage:
@@ -43,8 +89,12 @@ class CurrencyCog:
 
         Displays your current points total.
         """
-        bal = self.get_bal(ctx.author.id)
-        text = "Hello **{0}!**\nYour balance is: **{1}**".format(ctx.author.name, format(bal, ",d"))
+        bal = format(self.get_bal(ctx.author.id), ",d")
+        text = "__Your Wallet__\n**{}** points\n".format(bal)
+        self.cur.execute("SELECT * FROM CRYPTO WHERE ID = {}".format(ctx.author.id))
+        coins = self.cur.fetchall()
+        for c in coins:
+            text += "**{0}** {1}\n".format(c[2], c[3])
         await util.send(ctx, text)
 
     def check_input(self, ctx, arg):
@@ -104,7 +154,7 @@ class CurrencyCog:
         embed.add_field(name="leaderboard", value="top 10", inline=False)
         for i, l in enumerate(leaders):
             name = l[1]; bal = l[2]
-            embed.add_field(name="{0}. {1}".format(i+1, name), value=format(bal, ",d"), inline=True)
+            embed.add_field(name="{0}. {1}".format(i+1, name), value=format(bal, ",d"), inline=False)
         await util.send_embed(ctx, embed)
 
     @commands.command()
@@ -190,8 +240,9 @@ class CurrencyCog:
         await util.send(ctx, "What is **{0} {1} {2}**?".format(a, op, b))
         try:
             answer = await ctx.bot.wait_for("message",
-                                           check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
-                                           timeout=6.0)
+                                            check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
+                                            timeout=6.0)
+            now = datetime.now()
             if answer.content == str(ans):
                 text = "That is correct!\nYou earned **{0}** points!".format(payout[1])
                 correct = True
@@ -202,6 +253,146 @@ class CurrencyCog:
         if correct: self.update_bal(ctx.author.id, payout[1])
         else:       self.update_bal(ctx.author.id, payout[0]); text += "\nYou lost **{0}** points!".format(payout[0])
         await util.send(ctx, text)
+
+    @commands.command()
+    async def trivia(self, ctx):
+        """
+        Usage:
+                !trivia
+
+        Gives you a trivia question to answer within 20 seconds!
+        The faster you answer, the more points you get.
+        """
+        link = "https://opentdb.com/api.php?amount=1&type=multiple"
+        payout = {"easy": 2000, "medium": 4000, "hard": 6000}
+        with urllib.request.urlopen(link) as response:
+            payload = json.loads(response.read())["results"][0]
+        ans = [html.unescape(x) for x in payload["incorrect_answers"] + [payload["correct_answer"]]]
+        output = [payload["category"], payload["difficulty"], html.unescape(payload["question"]), random.shuffle(ans)]
+        loss = payout[payload["difficulty"]]/-20
+        text = "**Category:** {0}\n**Difficulty:** {1}\n**Question:** {2}\n\n__**Choose One**__".format(*output)
+        for i in range(4):
+            if ans[i] == html.unescape(payload["correct_answer"]):
+                letter = chr(i+65)
+            text += "\n{}: {}".format(chr(i+65), ans[i])
+        await util.send(ctx, text)
+        try:
+            start = datetime.now()
+            answer = await ctx.bot.wait_for("message",
+                                            check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
+                                            timeout=20.0)
+            if answer.content.upper() == letter:
+                end = datetime.now() - start
+                time = end.seconds + end.microseconds/10**6
+                time = .5 if time < .5 else time
+                pay = int(payout[payload["difficulty"]]/time)
+                self.update_bal(ctx.author.id, pay)
+                response = "Correct! You took **{0}** seconds and earned a total of **{1}** points!".format(round(time, 2), pay)
+            else:
+                self.update_bal(ctx.author.id, loss)
+                response = "Incorrect! It was **{0}**. You lost **{1}** points.".format(letter, int(loss)*-1)
+        except:
+            response = "You took too long!\nThe answer was **{0}**. You lost **{1}** points".format(letter, int(loss)*-1)
+            self.update_bal(ctx.author.id, loss)
+        await util.send(ctx, response)
+
+    @commands.command()
+    async def jeopardy(self, ctx):
+        """
+        Usage:
+                !jeopardy
+
+        Gives you a jeopardy question to answer within 30 seconds.
+        It must match the clue exactly with all punctuation and spaces.
+        """
+        link = "http://jservice.io/api/random"
+        chars = string.ascii_letters + string.digits
+        clue = [None]
+        while None in clue:
+            with urllib.request.urlopen(link) as response:
+                payload = json.loads(response.read())[0]
+                ans = re.sub(re.compile('<.*?>'), "", payload["answer"]).replace("\\", "") 
+                hint = ''.join([(lambda x: x if x not in chars or random.randint(1,10) in range(4) else "\\_")(x) for x in ans])
+                clue = [payload["value"], payload["category"]["title"], payload["question"], hint]
+        text = "**Difficulty: **{}\n**Category: **{}\n**Question: **{}\n\n**Answer: **{}\n".format(*clue)
+        await util.send(ctx, text)
+        try:
+            answer = await ctx.bot.wait_for("message",
+                                            check=lambda x: x.channel == ctx.channel and x.author.id == ctx.author.id,
+                                            timeout=30.0)
+            if answer.content.lower() != ans.lower():
+                await util.send(ctx, "Incorrect! The answer was \"{}\"".format(ans))
+            else:
+                self.update_bal(ctx.author.id, int(payload["value"]))
+                await util.send(ctx, "Correct! You just earned **{}** points!".format(payload["value"]))
+        except Exception as e:
+            print("There was an error! {}".format(e))
+            await util.send(ctx, "You took too long! The answer was \"{}\"".format(ans))
+
+    @commands.command()
+    async def crypto(self, ctx, *args):
+        """
+        Usage:
+                !crypto <currency1, <currency2>, ...>
+
+        Displays information on up to 5 different crypto currencies.
+        """
+        currencies = args or ["BTC", "ETH", "XRP", "EOS", "LTC"]
+        if len(currencies) > 5:
+            await util.send(ctx, "Please use less than 5 currencies in one list.")
+            return None
+
+        output = ""
+        for c in currencies:
+            price = self.get_price(c)
+            output += "**{0}** \\|\\| {1} points\n".format(c, int(price))
+        await util.send(ctx, output)
+
+    @commands.command()
+    async def buy(self, ctx, amt, coin):
+        """
+        Usage:
+                !buy [amount] [currency]
+
+        Attempts to purchase an amount of crypto using points.
+        """
+        coin = coin.upper()
+        try:
+            amount = float(amt)
+            if amount < 0:
+                raise
+        except:
+            return await util.send(ctx, "Invalid amount!")
+        price = self.get_price(coin)
+        total = int(price * float(amt))
+        result = self.buy_crypto(ctx.author, amt, coin, total)
+        if type(result) == str:
+            await util.send(ctx, "Transaction failed due to **{}**. Please try again.".format(result))
+        else:
+            await util.send(ctx, "Purchased {} units of {} for {} points".format(amt, coin, total))
+
+    @commands.command()
+    async def sell(self, ctx, amt, coin):
+        """
+        Usage:
+                !sell [amount] [currency]
+
+        Attempts to sell an amount of crypto to earn points.
+        """
+        coin = coin.upper()
+        try:
+            amount = float(amt)
+            if amount < 0:
+                raise
+        except:
+            return await util.send(ctx, "Invalid amount!")
+        price = self.get_price(coin)
+        total = int(price * float(amt))
+        result = self.sell_crypto(ctx.author, amount, coin, total)
+        if type(result) == str:
+            await util.send(ctx, "Transaction failed due to **{}**. Please try again.".format(result))
+        else:
+            await util.send(ctx, "Sold {} units of {} for {} points".format(amt, coin, total))
 
 
 def setup(bot):
