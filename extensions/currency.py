@@ -47,7 +47,7 @@ class CurrencyCog(commands.Cog):
     def get_price(self, crypto):
         link = "https://api.cryptonator.com/api/ticker/{}-usd".format(crypto)
         with urllib.request.urlopen(link) as response:
-            payload = json.loads(response.read())
+            payload = json.loads(response.read().decode("utf-8"))
         price = -1
         if payload["success"]:
             price = float(payload["ticker"]["price"]) * 100
