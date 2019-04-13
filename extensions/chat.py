@@ -44,13 +44,13 @@ class ChatCog(commands.Cog):
         cogs = ctx.bot.cogs.keys()
         if not arg:
             text = "__**PLUGINS**__\n"
-            for cog in ctx.bot.cogs.keys():
+            for cog in cogs:
                 text += cog[:-3] + "\n"
             return await util.send(ctx, text)
         else:
             cog = arg[0].lower().capitalize() + "Cog"
             if cog in cogs:
-                command = [x.name for x in ctx.bot.get_cog_commands(cog)]
+                command = [x.name for x in ctx.bot.get_cog(cog).get_commands()]
                 text = "__**{0} Commands**__\n".format(cog[:-3])
                 for c in command:
                     text += c + "\n"
