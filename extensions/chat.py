@@ -73,6 +73,16 @@ class ChatCog(commands.Cog):
         text = "{0.author} joined {0.guild} on {0.author.joined_at}".format(ctx)
         await util.send(ctx, text)
 
+    @commands.command()
+    async def my_id(self, ctx):
+        """
+        Usage:
+                !my_id
+
+        Gives you your ID
+        """
+        await util.send(ctx, "Your id is {}".format(ctx.author.id))
+        
 
 def setup(bot):
     bot.add_cog(ChatCog())
