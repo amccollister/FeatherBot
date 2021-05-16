@@ -27,17 +27,6 @@ class FunCog(commands.Cog):
         await util.send(ctx, text)
 
     @commands.command()
-    async def coolest(self, ctx):
-        """
-        Usage:
-                !coolest
-
-        Tells you the coolest person on the server.
-        """
-        text = "{0.author.name} is the coolest.".format(ctx)
-        await util.send(ctx, text)
-
-    @commands.command()
     async def choose(self, ctx, *args):
         """
         Usage:
@@ -72,20 +61,6 @@ class FunCog(commands.Cog):
         await util.send(ctx, text)
 
     @commands.command()
-    async def emoter(self, ctx, arg1, arg2):
-        """
-        Usage:
-                !emoter [emote] [sentence]
-
-        Puts an emote in between every word in your sentence.
-        :Clap: For :Clap: when :Clap: you :Clap: want :Clap: to :Clap: make :Clap: a :Clap: point! :Clap:
-        """
-        emote = " {0} ".format(arg1)
-        sentence = arg2.split(" ")
-        text = "{0}{1}{0}".format(emote, emote.join(sentence))
-        await util.send(ctx, text)
-
-    @commands.command()
     async def roll(self, ctx, arg):
         """
         Usage:
@@ -116,6 +91,7 @@ class FunCog(commands.Cog):
             text = "The dice landed on the floor. Please try again!"
         await util.send(ctx, text)
 
+	#TODO: Fix this command because it's broken
     @commands.command()
     async def imgur(self, ctx):
         """
@@ -140,7 +116,8 @@ class FunCog(commands.Cog):
                 if e.code == 404:
                     attempts += 1; continue
                 else: raise
-
+	
+	#TODO: Actually search for wikipedia pages
     @commands.command()
     async def wiki(self, ctx, *arg):
         """
