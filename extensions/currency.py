@@ -16,7 +16,7 @@ import urllib.error
 from datetime import datetime
 from discord.ext import commands
 
-
+# Most of the commands seem broken at the moment.
 class CurrencyCog(commands.Cog):
     def __init__(self, bot):
         self.con = sql.connect("db/database.db", isolation_level=None)
@@ -296,6 +296,7 @@ class CurrencyCog(commands.Cog):
             self.update_bal(ctx.author.id, loss)
         await util.send(ctx, response)
 
+	# Replace bet with double jeopardy?
     @commands.command()
     async def jeopardy(self, ctx):
         """
@@ -329,6 +330,7 @@ class CurrencyCog(commands.Cog):
             print("There was an error! {}".format(e))
             await util.send(ctx, "You took too long! The answer was \"{}\"".format(ans))
 
+	# I don't think crypto was ever setup properly, but it's cool
     @commands.command()
     async def crypto(self, ctx, *args):
         """
