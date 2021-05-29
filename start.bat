@@ -1,1 +1,0 @@
-python.exe start.py
